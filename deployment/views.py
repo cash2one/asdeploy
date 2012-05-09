@@ -9,15 +9,18 @@ from django.shortcuts import render_to_response
 
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 
 from deployment.forms import *
 
+@login_required
 def main_page(request):
     params = RequestContext(request, {
         'user': request.user
     })
     return render_to_response('main_page.html', params)
 
+@login_required
 def user_page(request, username):
     try:
         user = User.objects.get(username = username)
@@ -29,6 +32,7 @@ def user_page(request, username):
     })
     return render_to_response('user_page.html', params)
 
+@login_required
 def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/login/')
@@ -56,7 +60,7 @@ def register_page(request):
 
 
 ########业务相关########
-
+@login_required
 def deploy_init_option_page(request):
     error_msg = None
     if request.POST:
@@ -76,9 +80,11 @@ def deploy_init_option_page(request):
     })
     return render_to_response('deploy_init_option_page.html', params)
 
+@login_required
 def deploy_project_page(request):
     return render_to_response('deploy_project_page.html')
 
+@login_required
 def deploy_record_list_page(request, page_num=1):
 #    username = request.GET.get('username')
 #    begin_date = request.GET.get('begin_date')
@@ -89,5 +95,7 @@ def deploy_record_list_page(request, page_num=1):
     })
     return render_to_response('deploy_record_list_page.html', params) 
 
+@login_required
 def deploy_record_detail_page(request, deploy_record_id):
-    return render_to_response('deploy_record_detail_page.html')
+    params = RequestContext(request)
+    return render_to_response('deploy_record_detail_page.html', params)

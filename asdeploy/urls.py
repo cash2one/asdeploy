@@ -25,6 +25,7 @@ urlpatterns = patterns('',
     (r'^register/$', register_page),
     (r'^register/success/$', direct_to_template,
          {'template': 'registration/register_success.html'}),
+    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
     
     (r'^$', main_page),
     (r'^user/(\w+)/$', user_page),
