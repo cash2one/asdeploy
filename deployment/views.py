@@ -54,4 +54,18 @@ def register_page(request):
     })
     return render_to_response('registration/register.html', params)
 
-    
+
+########业务相关########
+
+def deploy_record_list_page(request, page_num=1):
+#    username = request.GET.get('username')
+#    begin_date = request.GET.get('begin_date')
+#    end_date = request.GET.get('end_date')
+#    project_name = request.GET.get('project_name')
+    params = RequestContext(request, {
+        'iters': range(25)
+    })
+    return render_to_response('deploy_record_list_page.html', params) 
+
+def deploy_record_detail_page(request, deploy_record_id):
+    return render_to_response('deploy_record_detail_page.html')

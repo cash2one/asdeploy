@@ -37,4 +37,6 @@ class RegistrationForm(forms.Form):
         raise forms.ValidationError('两次输入的密码不相同!')
 
 if __name__ == '__main__':
+    for i in range(10):
+        print i
     pass

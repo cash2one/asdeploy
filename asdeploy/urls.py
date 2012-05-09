@@ -27,5 +27,8 @@ urlpatterns = patterns('',
          {'template': 'registration/register_success.html'}),
     
     (r'^$', main_page),
-    (r'user/(\w+)/$', user_page),
+    (r'^user/(\w+)/$', user_page),
+    
+    (r'^deployRecordList/(?P<page_num>\d+)/$', deploy_record_list_page),
+    (r'^deployRecordDetail/(?P<deploy_record_id>\d+)/$', deploy_record_detail_page),
 )

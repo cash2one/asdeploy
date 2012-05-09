@@ -1,15 +1,48 @@
 {% extends "base.html" %}
 {% block title %}{% endblock %}
+
+{% block style %}
+<style>
+	div.wrap {
+		text-align: center;
+		padding-top: 50px;
+	}
+	ul.opt_list {
+		margin: 0px auto;
+		width: 300px;
+	}
+	ul.opt_list li{
+		list-style: none;
+		display: block;
+		width: 200px;
+		margin: 20px;
+		font-size: 20px;
+		float: left;
+	}
+	
+</style>
+{% endblock %}
+
 {% block content %}
-
-	{% if user.username %}
-		<p>
-			Welcome {{ user.username }}
-		</p>
-	{% else %}
-		<p>
-			Please <a href="/login">login</a>
-		</p>
-	{% endif %}
-
+	<div class="wrap">
+		<h1>welcome
+		{% if user %}{{user.username}}{% endif %}
+		</h1>
+		<div style="height: 80px"></div>
+		<div>
+			<ul class="opt_list">
+				<li>
+					<a href="###">新的发布</a>
+				</li>
+				<li>
+					<a href="/deployRecordList/1/">查看发布历史</a>
+				</li>
+				{% if user %}
+				<li>
+					<a href="/user/{{user.username}}">编辑个人信息</a>
+				</li>
+				{% endif %}
+			</ul>
+		</div>
+	</div>
 {% endblock %}

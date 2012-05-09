@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{% endblock %}
+{% block style %}
+<style>
+	div.wrap {
+		text-align: center;
+		padding-top: 50px;
+	}
+	div.query_area {
+		width: 500px;
+		margin: 0px auto;
+	}
+	div.query_area table {
+		width: 100%
+	}
+	div.query_area td {
+		text-align: left;
+	}
+	div.query_area td.label {
+		text-align: right;
+	}
+	div.list_area {
+		width: 900px;
+		margin: 30px auto 0px;
+	}
+	#list_tbl {
+		width: 100%;
+	}
+	
+	.page_bar {
+		width: 600px;
+		border: 10px;
+		height: 40px;
+		float: right;
+	}
+	.page_bar ul.btn_grp {
+		margin: 0px;
+		padding: 0px;
+		list-style:none;
+	}
+	.page_bar ul.btn_grp li{
+		float: left;
+		width: 20px;
+		height: 20px;
+		margin: 5px;
+		border: 2px solid #333;
+		line-height: 20px;
+		background: #ccc;
+		cursor: pointer;
+	}
+	.page_bar ul.btn_grp li.cur_sel {
+		background: #fff;
+	}
+	
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrap">
+	<h2>发布历史列表</h2>
+	<div class="query_area">
+		<table id="query_tbl">
+			<tr>
+				<td class="label">用户名:</td>
+				<td>
+					<input name="username" id="username"/>
+				</td>
+				<td class="label">发布环境:</td>
+				<td>
+					<select name="environment" id="environment">
+						<option>alpha</option>
+						<option>beta</option>
+						<option>online</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="label">工程:</td>
+				<td>
+					<select name="project" id="project">
+						<option>请选择</option>
+						<option>ajaxablesky</option>
+						<option>passport</option>
+						<option>cms</option>
+						<option>search</option>
+						<option>payment</option>
+					</select>
+				</td>
+				<td class="label">版本:</td>
+				<td>
+					<input name="version" id="version"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="label">开始时间</td>
+				<td>
+					<input />
+				</td>
+				<td class="label">结束时间</td>
+				<td>
+					<input />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="4" style="text-align: center;">
+					<input type="button" value="查询" style="font-size:15px;"/>
+				</td>
+			</tr>
+		</table>
+	</div>
+	
+	<hr>
+	
+	<div class="list_area">
+		<!--
+		<div style="float: right;">
+			<div class="page_bar" style="float: left;">
+				<div>
+					<a href="###">上一页</a>
+					当前第 [ 2 ] 页
+					<a href="###">下一页</a>
+				</div>
+				<ul class="btn_grp">
+					<li>1</li>
+					<li class="cur_sel">2</li>
+					<li>3</li>
+					<li>4</li>
+				</ul>
+			</div>
+		</div>
+		-->
+		<table id="list_tbl" border="1" cellspacing="0">
+			<tr>
+				<th width="40">ID</th>
+				<th width="100">用户名</th>
+				<th width="200">发布日期</th>
+				<th width="100">发布环境</th>
+				<th width="150">工程</th>
+				<th width="80">版本</th>
+				<th>操作</th>
+			</tr>
+			{% for i in iters %}
+			<tr>
+				<td>1</td>
+				<td>admin</td>
+				<td>2012-05-09 13:00:00</td>
+				<td>alpha</td>
+				<td>ajaxablesky</td>
+				<td>5.12</td>
+				<td>
+					<a href="/deployRecordDetail/1/">详情</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+</div>
+{% endblock %}
