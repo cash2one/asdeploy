@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block style %}
+<style>
+	div.wrap {
+		text-align: center;
+		padding-top: 50px;
+	}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+	<h2>发布工程</h2>
+	{{environment}}
+	{{project}}
+</div>
+{% endblock %}

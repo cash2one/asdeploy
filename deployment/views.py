@@ -57,6 +57,28 @@ def register_page(request):
 
 ########业务相关########
 
+def deploy_init_option_page(request):
+    error_msg = None
+    if request.POST:
+        project = request.POST.get('project')
+        environment = request.POST.get('environment')
+        if not project or not environment:
+            error_msg = '输入参数有误'
+        else:
+            #检查工程当前是否在发布， 并添加标识进入发布状态的代码
+            params = RequestContext(request, {
+                'project': project,
+                'environment': environment
+            })
+            return render_to_response('deploy_project_page.html', params)
+    params = RequestContext(request, {
+        'error_msg': error_msg
+    })
+    return render_to_response('deploy_init_option_page.html', params)
+
+def deploy_project_page(request):
+    return render_to_response('deploy_project_page.html')
+
 def deploy_record_list_page(request, page_num=1):
 #    username = request.GET.get('username')
 #    begin_date = request.GET.get('begin_date')

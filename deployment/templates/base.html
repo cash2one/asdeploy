@@ -7,17 +7,18 @@
 {% block style %}{% endblock %}
 <link style="text/css" rel="stylesheet" href="/static_files/css/style.css" />
 <script type="text/javascript" src="/static_files/js/jquery.js"></script>
+<script type="text/javascript" src="/static_files/js/ajaxsetup_for_django.js"></script>
 {% block native_js %}{% endblock %}
 </head>
 <body>
 <div id="nav">
-	<a href="/">home</a> |
+	<a href="/">首页</a> |
 	{% if user.is_authenticated %}
 		<a href="/user/{{user.username}}">{{ user.username }}</a> |
-		<a href="/logout">logout</a>
+		<a href="/logout">退出</a>
 	{% else %}
-		<a href="/login">login</a> |
-		<a href="/register">register</a>
+		<a href="/login">登录</a> |
+		<a href="/register">注册</a>
 	{% endif %}
 </div>
 {% block content %}{% endblock %}
