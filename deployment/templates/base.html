@@ -12,8 +12,8 @@
 </head>
 <body>
 <div id="nav">
-	<a href="/">首页</a> |
 	{% if user.is_authenticated %}
+		<a href="/">首页</a> |
 		<a href="/user/{{user.username}}">{{ user.username }}</a> |
 		<a href="/logout">退出</a>
 	{% else %}
