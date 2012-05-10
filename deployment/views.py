@@ -38,7 +38,6 @@ def logout_page(request):
     return HttpResponseRedirect('/login/')
 
 def register_page(request):
-    error_message = None
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -48,13 +47,10 @@ def register_page(request):
                 email = form.cleaned_data.get('email')
             )
             return HttpResponseRedirect('/register/success')
-        else:
-            error_message = '注册信息有误'
     else:
         form = RegistrationForm()
     params = RequestContext(request, {
         'form': form,
-#        error_message: error_message
     })
     return render_to_response('registration/register.html', params)
 
@@ -65,14 +61,15 @@ def deploy_init_option_page(request):
     error_msg = None
     if request.POST:
         project = request.POST.get('project')
-        environment = request.POST.get('environment')
-        if not project or not environment:
+        deploy_type = request.POST.get('deployType')
+        if not project or not deploy_type:
             error_msg = '输入参数有误'
         else:
             #检查工程当前是否在发布， 并添加标识进入发布状态的代码
+            #也可以把下面这些信息先写数据库里
             params = RequestContext(request, {
                 'project': project,
-                'environment': environment
+                'deployType': deploy_type,
             })
             return render_to_response('deploy_project_page.html', params)
     params = RequestContext(request, {
@@ -82,7 +79,12 @@ def deploy_init_option_page(request):
 
 @login_required
 def deploy_project_page(request):
-    return render_to_response('deploy_project_page.html')
+    params = RequestContext(request, {
+        'project': 'passport',
+        'environment': 'alpha',
+        'deployType': 'war包',
+    })
+    return render_to_response('deploy_project_page.html', params)
 
 @login_required
 def deploy_record_list_page(request, page_num=1):

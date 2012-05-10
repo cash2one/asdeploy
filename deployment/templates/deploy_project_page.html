@@ -5,13 +5,55 @@
 		text-align: center;
 		padding-top: 50px;
 	}
+	div.sect_wrap {
+		width: 800px;
+		text-align: left;
+		margin: 0px auto 50px;
+	}
+	ul.deploy_init_info {
+		list-style: none;
+		font-size: 20px;
+		margin: 0px;
+		padding: 0px;
+		display: inline-block;
+		width: 300px;
+	}
+	div.upload_area {
+		_display: inline-block;
+	}
+	div.upload_area input {
+		font-size: 16px;
+	}
+	div.upload_area label{
+		display: inline-block;
+		width: 120px;
+		font-size: 20px;
+	}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="wrap">
 	<h2>发布工程</h2>
-	{{environment}}
-	{{project}}
+	<div class="sect_wrap">
+		<ul class="deploy_init_info">
+			<li>发布工程: <b>{{project}}</b></li>
+			<li>发布方式: <b>{{deployType}}</b></li>
+		</ul>
+		<br/><br/>
+		<div class="upload_area">
+			<label>填写版本号:</label>
+			<input name="version" id="version"/>
+			<br/>
+			<label>上传文件:</label>
+			<!-- 找个jquery的文件上传插件 -->
+			<input type="file" name="uploadFile" id="uploadFile"/>
+			<input type="button" value="上传"/>
+		</div>
+	</div>
+	
+	<div class="sect_wrap">
+		<label></label>
+	</div>
 </div>
 {% endblock %}

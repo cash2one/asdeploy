@@ -67,13 +67,12 @@
 				<td>
 					<input name="username" id="username"/>
 				</td>
-				<td class="label">发布环境:</td>
+				<td class="label">发布类型</td>
 				<td>
-					<select name="environment" id="environment">
+					<select name="deployType" id="deployType">
 						<option value="">请选择</option>
-						<option>alpha</option>
-						<option>beta</option>
-						<option>online</option>
+						<option>war包</option>
+						<option>补丁</option>
 					</select>
 				</td>
 			</tr>
@@ -92,19 +91,6 @@
 				<td class="label">版本:</td>
 				<td>
 					<input name="version" id="version"/>
-				</td>
-			</tr>
-			<tr>
-				<td class="label">类型</td>
-				<td>
-					<select name="deployType" id="deployType">
-						<option value="">请选择</option>
-						<option>war包</option>
-						<option>补丁</option>
-					</select>
-				</td>
-				<td class="label"></td>
-				<td>
 				</td>
 			</tr>
 			<tr>
@@ -150,7 +136,6 @@
 				<th width="40">ID</th>
 				<th width="100">用户名</th>
 				<th width="200">发布日期</th>
-				<th width="100">发布环境</th>
 				<th width="150">工程</th>
 				<th width="80">版本</th>
 				<th width="80">类型</th>
@@ -161,7 +146,6 @@
 				<td>1</td>
 				<td>admin</td>
 				<td>2012-05-09 13:00:00</td>
-				<td>alpha</td>
 				<td>ajaxablesky</td>
 				<td>5.12</td>
 				<td>

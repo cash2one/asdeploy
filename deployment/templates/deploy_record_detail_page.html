@@ -11,7 +11,7 @@
 	}
 	.sect_title {
 		float: left;
-		font-size: 25px;
+		font-size: 20px;
 		font-weight: bold;
 	}
 	.sect_content {
@@ -21,12 +21,21 @@
 		width: 500px;
 		height: 300px;
 	}
+	div.basic_info h3 {
+		font-size: 20px;
+	}
 	
 </style>
 {% endblock %}
 {% block content %}
 <div class="wrap">
 	<h2>发布详情</h2>
+	<div class="basic_info">
+		<h3>发布者: admin</h3>
+		<h3>发布类型: 补丁</h3>
+		<h3>上传文件名: </h3>
+		<h3>220110628-ad-patch-ziye.gao</h3>
+	</div>
 	<div class="sect_wrap">
 		<div class="sect_title">
 			<label>readme</label>
