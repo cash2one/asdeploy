@@ -70,6 +70,7 @@
 				<td class="label">发布环境:</td>
 				<td>
 					<select name="environment" id="environment">
+						<option value="">请选择</option>
 						<option>alpha</option>
 						<option>beta</option>
 						<option>online</option>
@@ -80,7 +81,7 @@
 				<td class="label">工程:</td>
 				<td>
 					<select name="project" id="project">
-						<option>请选择</option>
+						<option value="">请选择</option>
 						<option>ajaxablesky</option>
 						<option>passport</option>
 						<option>cms</option>
@@ -91,6 +92,19 @@
 				<td class="label">版本:</td>
 				<td>
 					<input name="version" id="version"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="label">类型</td>
+				<td>
+					<select name="deployType" id="deployType">
+						<option value="">请选择</option>
+						<option>war包</option>
+						<option>补丁</option>
+					</select>
+				</td>
+				<td class="label"></td>
+				<td>
 				</td>
 			</tr>
 			<tr>
@@ -139,6 +153,7 @@
 				<th width="100">发布环境</th>
 				<th width="150">工程</th>
 				<th width="80">版本</th>
+				<th width="80">类型</th>
 				<th>操作</th>
 			</tr>
 			{% for i in iters %}
@@ -149,6 +164,13 @@
 				<td>alpha</td>
 				<td>ajaxablesky</td>
 				<td>5.12</td>
+				<td>
+					{% if i > 5 %}
+						war包
+					{% else %}
+						补丁
+					{% endif %}
+				</td>
 				<td>
 					<a href="/deployRecordDetail/1/">详情</a>
 				</td>

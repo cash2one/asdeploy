@@ -69,6 +69,10 @@ function submitCheck(){
 		alert('请选择工程!');
 		return false;
 	}
+	if(!$('#deployType').val()){
+		alert('请选择发布类型!');
+		return false;
+	}
 	return true;
 }
 </script>
@@ -93,6 +97,14 @@ function submitCheck(){
 				<option>alpha</option>
 				<option>beta</option>
 				<option>online</option>
+			</select>
+		</div>
+		<div class="sub_wrap">
+			<label>发布类型:</label>
+			<select name="deployType" id="deployType">
+				<option value="">请选择...</option>
+				<option>war包</option>
+				<option>补丁</option>
 			</select>
 		</div>
 		<div class="subwrap">
