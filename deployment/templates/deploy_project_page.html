@@ -8,7 +8,20 @@
 	div.sect_wrap {
 		width: 700px;
 		text-align: left;
-		margin: 0px auto 50px;
+		margin: 0px auto 20px;
+	}
+	div.sect_wrap input {
+		font-size: 16px;
+	}
+	div.sect_wrap label {
+		display: inline-block;
+		width: 150px;
+		font-size: 20px;
+	}
+	div.sect_wrap textarea {
+		font-size: 20px;
+		width: 700px;
+		height: 200px;
 	}
 	ul.deploy_init_info {
 		list-style: none;
@@ -18,22 +31,14 @@
 		display: inline-block;
 		width: 300px;
 	}
-	div.upload_area {
-		_display: inline-block;
-	}
-	div.upload_area input {
-		font-size: 16px;
-	}
-	div.upload_area label{
-		display: inline-block;
-		width: 150px;
-		font-size: 20px;
-	}
 	div.upload_area .desc {
 		font-size: 20px;
 	}
 	#deployItemField {
 		width: 400px;
+	}
+	#uploadDetailWrap {
+		display: none;
 	}
 </style>
 {% endblock %}
@@ -76,6 +81,7 @@ $(function(){
 						$('#uploadResult').html('文件上传成功!').css({color: 'green'});
 						$('#uploadFilename').html('文  件  名: ' + data.filename).css({color: 'green'});;
 						$('#uploadFileSize').html('文件大小: ' + sizeStr).css({color: 'green'});
+						$('#uploadDetailWrap').show();
 					}else{
 						this.error(data, status)
 					}
@@ -84,8 +90,9 @@ $(function(){
 					$('#uploadResult')
 							.html('文件上传失败!')
 							.css({color: 'red'});
-						$('#uploadFilename').html('');
-						$('#uploadFilename').html('');
+					// $('#uploadFilename').html('');
+					// $('#uploadFilename').html('');
+					$('#uploadDetailWrap').hide();
 				}
 			})
 			return false;
@@ -114,16 +121,33 @@ $(function(){
 			<label>文件上传状态:</label>
 			<span class="desc" id="uploadResult">尚未上传文件</span>
 			<br/>
-			<label></label>
-			<span class="desc" id="uploadFilename"></span>
-			<br/>
-			<label></label>
-			<span class="desc" id="uploadFileSize"></span>
+			<div id="uploadDetailWrap">
+				<label></label>
+				<span class="desc" id="uploadFilename"></span>
+				<br/>
+				<label></label>
+				<span class="desc" id="uploadFileSize"></span>
+			</div>
 		</div>
 	</div>
-	
 	<div class="sect_wrap">
-		<label></label>
+		<div class="check_area">
+			<input type="button" value="解压并检查上传文件"/>
+			<div style="padding-top: 20px;">
+				<label>README</label>
+				<br/>
+				<textarea id="readme_content"></textarea>
+			</div>
+			<div style="padding-top: 20px;">
+				<input type="button" value="更新web.xml"/>
+				<input type="button" value="发布"/>
+			</div>
+			<div style="padding-top: 20px;">
+				<label>LOG</label>
+				<br/>
+				<textarea id="log_content"></textarea>
+			</div>
+		</div>
 	</div>
 </div>
 {% endblock %}
