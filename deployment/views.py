@@ -1,5 +1,7 @@
 #coding:utf-8
 
+import json
+
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
@@ -62,7 +64,8 @@ def deploy_init_option_page(request):
     if request.POST:
         project = request.POST.get('project')
         deploy_type = request.POST.get('deployType')
-        if not project or not deploy_type:
+        version = request.POST.get('version')
+        if not project or not deploy_type or not version:
             error_msg = '输入参数有误'
         else:
             #检查工程当前是否在发布， 并添加标识进入发布状态的代码
@@ -70,6 +73,7 @@ def deploy_init_option_page(request):
             params = RequestContext(request, {
                 'project': project,
                 'deployType': deploy_type,
+                'version': version,
             })
             return render_to_response('deploy_project_page.html', params)
     params = RequestContext(request, {
@@ -81,8 +85,8 @@ def deploy_init_option_page(request):
 def deploy_project_page(request):
     params = RequestContext(request, {
         'project': 'passport',
-        'environment': 'alpha',
-        'deployType': 'war包',
+        'version': '1.1',
+        'deployType': 'war',
     })
     return render_to_response('deploy_project_page.html', params)
 
@@ -101,3 +105,25 @@ def deploy_record_list_page(request, page_num=1):
 def deploy_record_detail_page(request, deploy_record_id):
     params = RequestContext(request)
     return render_to_response('deploy_record_detail_page.html', params)
+
+@login_required
+def upload_deploy_item_page(request):
+    params = {}
+    if request.POST and request.FILES:
+        project = request.POST.get('project')
+        version = request.POST.get('version')
+        deploy_type = request.POST.get('deployType')
+        deploy_item_file = request.FILES.get('deployItemField')
+        filename = deploy_item_file.name
+        size = deploy_item_file.size
+        # 路径配置信息待改
+        destination = open('c:/tempfiles/copys/' + filename, 'wb+')
+        for chunk in deploy_item_file.chunks():
+            destination.write(chunk)
+        destination.close()
+        params['filename'] = filename
+        params['size'] = size
+        params['isSuccess'] = True
+    else:
+        params['isSuccess'] = False
+    return HttpResponse(json.dumps(params))

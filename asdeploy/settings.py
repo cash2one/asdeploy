@@ -159,6 +159,8 @@ LOGGING = {
 
 USE_MULTITHREADED_SERVER = True
 
+FILE_UPLOAD_TEMP_DIR = 'c:/tempfiles/'
+
 # 有可能需要添加自定义的handler
 #FILE_UPLOAD_HANDLERS = (
 #    "django.core.files.uploadhandler.MemoryFileUploadHandler",

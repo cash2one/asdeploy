@@ -6,7 +6,7 @@
 		padding-top: 50px;
 	}
 	div.sect_wrap {
-		width: 800px;
+		width: 700px;
 		text-align: left;
 		margin: 0px auto 50px;
 	}
@@ -26,29 +26,99 @@
 	}
 	div.upload_area label{
 		display: inline-block;
-		width: 120px;
+		width: 150px;
 		font-size: 20px;
+	}
+	div.upload_area .desc {
+		font-size: 20px;
+	}
+	#deployItemField {
+		width: 400px;
 	}
 </style>
 {% endblock %}
 
+{% block native_js %}
+<script src="/static_files/js/ajaxfileupload.js"></script>
+<script>
+$(function(){
+	$('#uploadBtn').click((function(){
+		var hasUploaded = false;
+		var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
+		return function(){
+			$(this).ajaxStart(function(){
+				$(this).val('上传中').attr({disabled: true});
+			})
+			.ajaxComplete(function(){
+				$(this).val('重新上传').attr({disabled: false});
+			})
+			if(!$('#deployItemField').val()){
+				alert('请先选择要上传的文件!');
+				return false;
+			}
+			$.ajaxFileUpload({
+				url: '/uploadDeployItem/',
+				secureuri: false, 
+				fileElementId:'deployItemField',
+				dataType: 'json',
+				data: {
+					csrfmiddlewaretoken: csrfToken,
+					project: '{{project}}',
+					version: '{{version}}',
+					deployType: '{{deployType}}',
+				},
+				success: function (data, status){
+					if(typeof data == 'object' && data.isSuccess === true){
+						var sizeUnits = ['byte', 'kb', 'MB', 'GB']
+						var size = data.size;
+						for(i=0; i <=3 && size > 1024; size = (size/1024).toFixed(2), i++);
+						var sizeStr = size + sizeUnits[i];
+						$('#uploadResult').html('文件上传成功!').css({color: 'green'});
+						$('#uploadFilename').html('文  件  名: ' + data.filename).css({color: 'green'});;
+						$('#uploadFileSize').html('文件大小: ' + sizeStr).css({color: 'green'});
+					}else{
+						this.error(data, status)
+					}
+				},
+				error: function(data, status, e){
+					$('#uploadResult')
+							.html('文件上传失败!')
+							.css({color: 'red'});
+						$('#uploadFilename').html('');
+						$('#uploadFilename').html('');
+				}
+			})
+			return false;
+		}
+	})())
+})
+</script>
+{% endblock %}
+
 {% block content %}
+{% csrf_token %}
 <div class="wrap">
 	<h2>发布工程</h2>
 	<div class="sect_wrap">
 		<ul class="deploy_init_info">
 			<li>发布工程: <b>{{project}}</b></li>
+			<li>版&nbsp;本&nbsp;号: <b>{{version}}</b></li>
 			<li>发布方式: <b>{{deployType}}</b></li>
 		</ul>
 		<br/><br/>
 		<div class="upload_area">
-			<label>填写版本号:</label>
-			<input name="version" id="version"/>
-			<br/>
 			<label>上传文件:</label>
-			<!-- 找个jquery的文件上传插件 -->
-			<input type="file" name="uploadFile" id="uploadFile"/>
-			<input type="button" value="上传"/>
+			<input type="file" name="deployItemField" id="deployItemField"/>
+			<input type="button" value="上传" id="uploadBtn"/>
+			<br/>
+			<label>文件上传状态:</label>
+			<span class="desc" id="uploadResult">尚未上传文件</span>
+			<br/>
+			<label></label>
+			<span class="desc" id="uploadFilename"></span>
+			<br/>
+			<label></label>
+			<span class="desc" id="uploadFileSize"></span>
 		</div>
 	</div>
 	
