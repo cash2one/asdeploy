@@ -103,6 +103,9 @@ $(function(){
 });
 window.onbeforeunload = function(){
 	var alarmStr = '发布过程中，请不要离开!\n请点击 [ 取消 ] 或 [ 留在此页 ] ';
+	if($.browser.mozilla === true && !confirm(alarmStr)){
+		return false;
+	}
 	window.event.returnValue = alarmStr;
 	return alarmStr;
 };
