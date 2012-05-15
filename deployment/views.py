@@ -75,8 +75,6 @@ def deploy_init_option_page(request):
         elif cur_lock:
             return HttpResponseRedirect('/')
         else:
-            #检查工程当前是否在发布， 并添加标识进入发布状态的代码
-            #也可以把下面这些信息先写数据库里
             proj_id = int(proj_id_str)
             project = Project.objects.get(pk = proj_id)
             map = {
