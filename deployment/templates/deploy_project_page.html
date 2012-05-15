@@ -47,58 +47,65 @@
 <script src="/static_files/js/ajaxfileupload.js"></script>
 <script>
 $(function(){
-	$('#uploadBtn').click((function(){
-		var hasUploaded = false;
-		var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
-		return function(){
-			$(this).ajaxStart(function(){
-				$(this).val('上传中').attr({disabled: true});
-			})
-			.ajaxComplete(function(){
-				$(this).val('重新上传').attr({disabled: false});
-			})
-			if(!$('#deployItemField').val()){
-				alert('请先选择要上传的文件!');
-				return false;
-			}
-			$.ajaxFileUpload({
-				url: '/uploadDeployItem/',
-				secureuri: false, 
-				fileElementId:'deployItemField',
-				dataType: 'json',
-				data: {
-					csrfmiddlewaretoken: csrfToken,
-					project: '{{project}}',
-					version: '{{version}}',
-					deployType: '{{deployType}}',
-				},
-				success: function (data, status){
-					if(typeof data == 'object' && data.isSuccess === true){
-						var sizeUnits = ['byte', 'kb', 'MB', 'GB']
-						var size = data.size;
-						for(i=0; i <=3 && size > 1024; size = (size/1024).toFixed(2), i++);
-						var sizeStr = size + sizeUnits[i];
-						$('#uploadResult').html('文件上传成功!').css({color: 'green'});
-						$('#uploadFilename').html('文  件  名: ' + data.filename).css({color: 'green'});;
-						$('#uploadFileSize').html('文件大小: ' + sizeStr).css({color: 'green'});
-						$('#uploadDetailWrap').show();
-					}else{
-						this.error(data, status)
-					}
-				},
-				error: function(data, status, e){
-					$('#uploadResult')
-							.html('文件上传失败!')
-							.css({color: 'red'});
-					// $('#uploadFilename').html('');
-					// $('#uploadFilename').html('');
-					$('#uploadDetailWrap').hide();
-				}
-			})
+	var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
+	$('#uploadBtn').click(function(){
+		$(this).ajaxStart(function(){
+			$(this).val('上传中').attr({disabled: true});
+		})
+		.ajaxComplete(function(){
+			$(this).val('重新上传').attr({disabled: false});
+		})
+		if(!$('#deployItemField').val()){
+			alert('请先选择要上传的文件!');
 			return false;
 		}
-	})())
-})
+		$.ajaxFileUpload({
+			url: '/uploadDeployItem/',
+			secureuri: false, 
+			fileElementId:'deployItemField',
+			dataType: 'json',
+			data: {
+				csrfmiddlewaretoken: csrfToken,
+				project: '{{project}}',
+				version: '{{version}}',
+				deployType: '{{deployType}}',
+			},
+			success: function (data, status){
+				if(typeof data == 'object' && data.isSuccess === true){
+					var sizeUnits = ['byte', 'kb', 'MB', 'GB']
+					var size = data.size;
+					for(i=0; i <=3 && size > 1024; size = (size/1024).toFixed(2), i++);
+					var sizeStr = size + sizeUnits[i];
+					$('#uploadResult').html('文件上传成功!').css({color: 'green'});
+					$('#uploadFilename').html('文  件  名: ' + data.filename).css({color: 'green'});;
+					$('#uploadFileSize').html('文件大小: ' + sizeStr).css({color: 'green'});
+					$('#uploadDetailWrap').show();
+				}else{
+					this.error(data, status)
+				}
+			},
+			error: function(data, status, e){
+				$('#uploadResult')
+						.html('文件上传失败!')
+						.css({color: 'red'});
+				$('#uploadDetailWrap').hide();
+			}
+		})
+		return false;
+	});
+	$('#unlock_and_leave').click(function(){
+		if(!confirm('确认要解锁本次发布并离开?')){
+			return;
+		}
+		window.onbeforeunload = null;
+		location.href = '/unlockDeploy';
+	})
+});
+window.onbeforeunload = function(){
+	var alarmStr = '发布过程中，请不要离开!\n请点击[取消]';
+	window.event.returnValue = alarmStr;
+	return alarmStr;
+};
 </script>
 {% endblock %}
 
@@ -108,7 +115,7 @@ $(function(){
 	<h2>发布工程</h2>
 	<div class="sect_wrap">
 		<ul class="deploy_init_info">
-			<li>发布工程: <b>{{project}}</b></li>
+			<li>发布工程: <b>{{project.name}}</b></li>
 			<li>版&nbsp;本&nbsp;号: <b>{{version}}</b></li>
 			<li>发布方式: <b>{{deployType}}</b></li>
 		</ul>
@@ -148,7 +155,7 @@ $(function(){
 				<textarea id="log_content"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
-				<input type="button" value="解锁并返回首页"/>
+				<input type="button" id="unlock_and_leave" value="解锁并返回首页"/>
 			</div>
 		</div>
 	</div>

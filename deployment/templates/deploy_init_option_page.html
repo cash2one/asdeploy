@@ -12,6 +12,10 @@
 		font-size: 20px;
 		width: 110px;
 	}
+	div.wrap input {
+		font-size: 18px;
+		width: 110px;
+	}
 	div.sub_wrap {
 		width: 300px;
 		margin: 0px auto 30px;
@@ -50,8 +54,8 @@ $(function(){
 	$liArr.click(function(){
 		$liArr.css({backgroundColor: '', color: '', fontWeight: ''})
 			.filter(':nth-child(2n+1)').css({'backgroundColor': '#eee'});
-		$(this).css({backgroundColor: '#999', color: '#fff', fontWeight: 'bolder'});
-		$('#project').val(this.innerHTML);
+		var $this = $(this).css({backgroundColor: '#999', color: '#fff', fontWeight: 'bolder'});
+		$('#project').val($this.children('input:first').val());
 	});
 	$('#submitBtn').click(function(){
 		if(!submitCheck()){
@@ -103,16 +107,12 @@ function submitCheck(){
 			<br/>
 			<div>
 				<ul class='option_wrap'>
-					<li>ajaxablesky</li>
-					<li>passport</li>
-					<li>search</li>
-					<li>cms</li>
-					<li>payment</li>
-					<li>ajaxablesky</li>
-					<li>passport</li>
-					<li>search</li>
-					<li>cms</li>
-					<li>payment</li>
+					{% for project in projects %}
+						<li>
+							<input type="hidden" value="{{project.id}}"/>
+							{{ project.name }}
+						</li>
+					{% endfor %}
 				</ul>
 			</div>
 			<br/>

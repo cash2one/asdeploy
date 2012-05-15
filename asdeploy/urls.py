@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     
     (r'^$', main_page),
     (r'^user/(\w+)/$', user_page),
+    (r'^unlockDeploy/$', unlock_deploy),
     
     (r'^deployInitOption/$', deploy_init_option_page),
     (r'^deployProject/$', deploy_project_page),
