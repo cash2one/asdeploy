@@ -89,7 +89,7 @@ function submitCheck(){
 
 	<form method="post" action="." id="deployInitOptionForm">
 		{% csrf_token %}
-		<input type="hidden" value="" name="project" id="project"/>
+		<input type="hidden" value="" name="projId" id="project"/>
 		<div class="sub_wrap">
 			<label>发布类型:</label>
 			<select name="deployType" id="deployType">

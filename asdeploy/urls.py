@@ -32,7 +32,7 @@ urlpatterns = patterns('',
     (r'^unlockDeploy/$', unlock_deploy),
     
     (r'^deployInitOption/$', deploy_init_option_page),
-    (r'^deployProject/$', deploy_project_page),
+#    (r'^deployProject/$', deploy_project_page),
     (r'^uploadDeployItem/$', upload_deploy_item),
     
     (r'^deployRecordList/(?P<page_num>\d+)/$', deploy_record_list_page),

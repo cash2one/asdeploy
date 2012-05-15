@@ -66,7 +66,7 @@ def register_page(request):
 def deploy_init_option_page(request):
     error_msg = None
     if request.POST:
-        proj_id_str = request.POST.get('project')
+        proj_id_str = request.POST.get('projId')
         deploy_type = request.POST.get('deployType')
         version = request.POST.get('version')
         cur_lock = _check_lock()
@@ -77,15 +77,15 @@ def deploy_init_option_page(request):
         else:
             proj_id = int(proj_id_str)
             project = Project.objects.get(pk = proj_id)
-            map = {
+            _params = {
                 'project': project,
                 'deployType': deploy_type,
                 'version': version,
             }
-            (record, lock) = _before_deploy_project(request, map)
-            map['record'] = record
-            map['lock'] = lock
-            params = RequestContext(request, map)
+            (record, lock) = _before_deploy_project(request, _params)
+            _params['record'] = record
+            _params['lock'] = lock
+            params = RequestContext(request, _params)
             return render_to_response('deploy_project_page.html', params)
     params = RequestContext(request, {
         'error_msg': error_msg,
@@ -119,6 +119,7 @@ def _before_deploy_project(request, params):
     lock.save()
     return (record, lock)
 
+@login_required
 def unlock_deploy(request):
     curUser = request.user
     curLock = _check_lock()
@@ -127,14 +128,14 @@ def unlock_deploy(request):
         curLock.save()
     return HttpResponseRedirect('/')
 
-@login_required
-def deploy_project_page(request):
-    params = RequestContext(request, {
-        'project': 'passport',
-        'version': '1.1',
-        'deployType': 'war',
-    })
-    return render_to_response('deploy_project_page.html', params)
+#@login_required
+#def deploy_project_page(request):
+#    params = RequestContext(request, {
+#        'project': 'passport',
+#        'version': '1.1',
+#        'deployType': 'war',
+#    })
+#    return render_to_response('deploy_project_page.html', params)
 
 @login_required
 def deploy_record_list_page(request, page_num=1):
@@ -156,20 +157,50 @@ def deploy_record_detail_page(request, deploy_record_id):
 def upload_deploy_item(request):
     params = {}
     if request.POST and request.FILES:
-        project = request.POST.get('project')
+        proj_id = int(request.POST.get('projId'))
+        record_id = int(request.POST.get('recordId'))
         version = request.POST.get('version')
         deploy_type = request.POST.get('deployType')
         deploy_item_file = request.FILES.get('deployItemField')
         filename = deploy_item_file.name
         size = deploy_item_file.size
         # 路径配置信息待改
-        destination = open('c:/tempfiles/copys/' + filename, 'wb+')
+        folderpath = _generate_folder_path()
+        destination = open(folderpath + filename, 'wb+')
         for chunk in deploy_item_file.chunks():
             destination.write(chunk)
         destination.close()
+        
+        items = DeployItem.objects.filter(file_name__exact = filename )
+        item = (items and len(items) > 0) and items[0] or None
+        now_time = datetime.now()
+        if not item:
+            item = DeployItem(
+                user = request.user,
+                project = Project.objects.get(pk = proj_id),
+                version = version,
+                deploy_type = deploy_type,
+                file_name = filename,
+                folder_path = folderpath,
+                create_time = now_time,
+                update_time = now_time
+            )
+        else:
+            item.update_time = now_time
+        item.save()
+        
+        record = DeployRecord.objects.get(pk = record_id)
+        if record:
+            record.status = DeployRecord.UPLOADED
+            record.deploy_item = item;
+            record.save()
+            
         params['filename'] = filename
         params['size'] = size
         params['isSuccess'] = True
     else:
         params['isSuccess'] = False
     return HttpResponse(json.dumps(params))
+
+def _generate_folder_path():
+    return 'c:/tempfiles/copys/'

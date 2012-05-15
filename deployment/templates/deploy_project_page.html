@@ -66,15 +66,16 @@ $(function(){
 			dataType: 'json',
 			data: {
 				csrfmiddlewaretoken: csrfToken,
-				project: '{{project}}',
+				projId: '{{project.id}}',
 				version: '{{version}}',
 				deployType: '{{deployType}}',
+				recordId: '{{record.id}}'
 			},
 			success: function (data, status){
 				if(typeof data == 'object' && data.isSuccess === true){
 					var sizeUnits = ['byte', 'kb', 'MB', 'GB']
 					var size = data.size;
-					for(i=0; i <=3 && size > 1024; size = (size/1024).toFixed(2), i++);
+					for(i=0; i <=sizeUnits.length && size > 1024; size = (size/1024).toFixed(2), i++);
 					var sizeStr = size + sizeUnits[i];
 					$('#uploadResult').html('文件上传成功!').css({color: 'green'});
 					$('#uploadFilename').html('文  件  名: ' + data.filename).css({color: 'green'});;

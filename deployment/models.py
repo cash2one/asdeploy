@@ -1,3 +1,5 @@
+#coding:utf-8
+
 from django.db import models
 
 from django.contrib.auth.models import User
@@ -21,6 +23,7 @@ class DeployItem(models.Model):
     project = models.ForeignKey(Project)
     version = models.CharField(max_length = 11)
     deploy_type = models.CharField(max_length=15)
+    file_name = models.CharField(max_length = 100)
     folder_path = models.FilePathField(null = True)
     create_time = models.DateTimeField()
     update_time = models.DateTimeField(null = True)
@@ -31,6 +34,7 @@ class DeployItem(models.Model):
 
 class DeployRecord(models.Model):
     PREPARE = 'prepare'
+    UPLOADED = 'uploaded'
     PUBLISING = 'deploying'
     SUCCESS = 'success'
     FAILURE = 'failure'
@@ -46,7 +50,6 @@ class DeployRecord(models.Model):
         db_table = 'dpl_deployrecord'
     
     
-
 class DeployLock(models.Model):
     user = models.ForeignKey(User)
     deploy_record = models.ForeignKey(DeployRecord)
