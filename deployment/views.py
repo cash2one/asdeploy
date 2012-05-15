@@ -107,7 +107,7 @@ def deploy_record_detail_page(request, deploy_record_id):
     return render_to_response('deploy_record_detail_page.html', params)
 
 @login_required
-def upload_deploy_item_page(request):
+def upload_deploy_item(request):
     params = {}
     if request.POST and request.FILES:
         project = request.POST.get('project')

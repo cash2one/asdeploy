@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block style %}
+<link type="text/css" rel="stylesheet" href="/static_files/jqueryui/css/jquery.ui.core.css"/>
+<link type="text/css" rel="stylesheet" href="/static_files/jqueryui/css/jquery.ui.theme.css"/>
+<link type="text/css" rel="stylesheet" href="/static_files/jqueryui/css/jquery.ui.datepicker.css"/>
 <style>
 	div.wrap {
 		text-align: center;
@@ -31,106 +34,172 @@
 	}
 	
 	.page_bar {
-		width: 600px;
-		border: 10px;
 		height: 40px;
 		float: right;
+		text-align: right;
 	}
-	.page_bar ul.btn_grp {
+	.page_bar div.btn_grp {
 		margin: 0px;
 		padding: 0px;
-		list-style:none;
+		display: inline-block;
 	}
-	.page_bar ul.btn_grp li{
+	.page_bar .btn_grp div{
+		display: inline-block;
+		margin: 5px;
+		text-align: center;
+		line-height: 20px;
 		float: left;
 		width: 20px;
 		height: 20px;
-		margin: 5px;
+	}
+	.page_bar .btn_grp .btn{
 		border: 2px solid #333;
-		line-height: 20px;
-		background: #ccc;
+		background: #eee;
 		cursor: pointer;
 	}
-	.page_bar ul.btn_grp li.cur_sel {
-		background: #fff;
+	.page_bar .btn_grp .cur_sel {
+		color: #fff;
+		font-weight: bolder;
+		background: #999;
+	}
+	.page_bar .cur_page_panel {
+		display: inline-block;
+		margin: 0px;
+		padding: 0px;
+		line-height: 20px;
+		font-size: 16px;
+		font-weight: bolder;
+	}
+	.page_bar .cur_page_panel a {
+		text-decoration: none;
+		color: #000;
 	}
 	
 </style>
 {% endblock %}
+
+{% block native_js %}
+<script type="text/javascript" src="/static_files/jqueryui/js/jquery.ui.core.js"></script>
+<script type="text/javascript" src="/static_files/jqueryui/js/jquery.ui.datepicker.js"></script>
+<script type="text/javascript" src="/static_files/jqueryui/js/i18n/jquery.ui.datepicker-zh-CN.js"></script>
+<script>
+$(function(){
+	$.datepicker.setDefaults($.datepicker.regional['zh-CN']);
+	var baseDatePickerOption = {
+		dateFormat: 'yy-mm-dd',
+		changeYear: true
+	};
+	$('#startTime').datepicker($.extend({}, baseDatePickerOption, {
+		onSelect: function(selectedDate){
+			var instance = $( this ).data( "datepicker" );
+			var date = $.datepicker.parseDate(
+				instance.settings.dateFormat || $.datepicker._defaults.dateFormat, 
+				selectedDate, 
+				instance.settings);
+			$('#endTime').datepicker('option', {
+				minDate: date
+			});
+		}
+	}));
+	$('#endTime').datepicker($.extend({}, baseDatePickerOption,{
+		onSelect: function(selectedDate){
+			var instance = $( this ).data( "datepicker" );
+			var date = $.datepicker.parseDate(
+				instance.settings.dateFormat || $.datepicker._defaults.dateFormat, 
+				selectedDate, 
+				instance.settings);
+			$('#startTime').datepicker('option', {
+				maxDate: date
+			});
+		}
+	}));
+	$("#ui-datepicker-div").css('font-size','0.8em')
+})
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="wrap">
 	<h2>发布历史列表</h2>
 	<div class="query_area">
-		<table id="query_tbl">
-			<tr>
-				<td class="label">用户名:</td>
-				<td>
-					<input name="username" id="username"/>
-				</td>
-				<td class="label">发布类型</td>
-				<td>
-					<select name="deployType" id="deployType">
-						<option value="">请选择</option>
-						<option>war包</option>
-						<option>补丁</option>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td class="label">工程:</td>
-				<td>
-					<select name="project" id="project">
-						<option value="">请选择</option>
-						<option>ajaxablesky</option>
-						<option>passport</option>
-						<option>cms</option>
-						<option>search</option>
-						<option>payment</option>
-					</select>
-				</td>
-				<td class="label">版本:</td>
-				<td>
-					<input name="version" id="version"/>
-				</td>
-			</tr>
-			<tr>
-				<td class="label">开始时间</td>
-				<td>
-					<input />
-				</td>
-				<td class="label">结束时间</td>
-				<td>
-					<input />
-				</td>
-			</tr>
-			<tr>
-				<td colspan="4" style="text-align: center;">
-					<input type="button" value="查询" style="font-size:15px;"/>
-				</td>
-			</tr>
-		</table>
+		<form method="post" action="." id="deploy_record_query_form">
+			{% csrf_token %}
+			<table id="query_tbl">
+				<tr>
+					<td class="label">用户名:</td>
+					<td>
+						<input name="username" id="username"/>
+					</td>
+					<td class="label">发布类型</td>
+					<td>
+						<select name="deployType" id="deployType">
+							<option value="">请选择</option>
+							<option>war包</option>
+							<option>补丁</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td class="label">工程:</td>
+					<td>
+						<select name="project" id="project">
+							<option value="">请选择</option>
+							<option>ajaxablesky</option>
+							<option>passport</option>
+							<option>cms</option>
+							<option>search</option>
+							<option>payment</option>
+						</select>
+					</td>
+					<td class="label">版本:</td>
+					<td>
+						<input name="version" id="version"/>
+					</td>
+				</tr>
+				<tr>
+					<td class="label">开始时间</td>
+					<td>
+						<input name="startTime" id="startTime"/>
+					</td>
+					<td class="label">结束时间</td>
+					<td>
+						<input name="endTime" id="endTime"/>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="4" style="text-align: center;">
+						<input type="button" value="查询" style="font-size:15px;"/>
+					</td>
+				</tr>
+			</table>
+		</form>
 	</div>
 	
 	<hr>
 	
 	<div class="list_area">
-		<!--
-		<div style="float: right;">
-			<div class="page_bar" style="float: left;">
-				<div>
-					<a href="###">上一页</a>
-					当前第 [ 2 ] 页
-					<a href="###">下一页</a>
+		<div class="page_bar">
+			<div class="btn_grp">
+				<div class="btn">1</div>
+				<div class="btn cur_sel">2</div>
+				<div class="btn">3</div>
+				<div class="btn">4</div>
+				<div>...</div>
+				<div class="btn">9</div>
+				<div class="btn">10</div>
+			</div>
+			<div class="cur_page_panel">
+				<div style="display: inline-block">
+					<div>
+						<a href="###">&lt;&lt;</a>
+						<span>当前第[2]页,共[10]页</span>
+						<a href="###">&gt;&gt;</a>
+					</div>
+					<div style="height: 5px; line-height: 1px;">&nbsp;</div>
 				</div>
-				<ul class="btn_grp">
-					<li>1</li>
-					<li class="cur_sel">2</li>
-					<li>3</li>
-					<li>4</li>
-				</ul>
 			</div>
 		</div>
-		-->
+		<br/>
 		<table id="list_tbl" border="1" cellspacing="0">
 			<tr>
 				<th width="40">ID</th>
