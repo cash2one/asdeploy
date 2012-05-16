@@ -35,6 +35,9 @@ urlpatterns = patterns('',
 #    (r'^deployProject/$', deploy_project_page),
     (r'^uploadDeployItem/$', upload_deploy_item),
     
+    (r'^startDeploy/$', start_deploy),  # 点击发布按钮
+    (r'^readDeployLogOnRealtime/$', read_deploy_log_on_realtime), #发布过程中实时查询日志文件
+    
     (r'^deployRecordList/(?P<page_num>\d+)/$', deploy_record_list_page),
     (r'^deployRecordDetail/(?P<deploy_record_id>\d+)/$', deploy_record_detail_page),
 

@@ -3,6 +3,8 @@
 import json
 from datetime import datetime
 
+from django.core.cache import cache
+
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
@@ -16,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 
 from deployment.models import *
 from deployment.forms import *
+from deployment.logs import *
 
 @login_required
 def main_page(request):
@@ -123,6 +126,7 @@ def _before_deploy_project(request, params):
 def unlock_deploy(request):
     curUser = request.user
     curLock = _check_lock()
+    # 这里应该取出权限信息进行判定，先简单写成这样吧
     if curLock and (curUser.username == 'admin' or curUser.id == curLock.user.id):
         curLock.is_locked = False
         curLock.save()
@@ -202,5 +206,55 @@ def upload_deploy_item(request):
         params['isSuccess'] = False
     return HttpResponse(json.dumps(params))
 
+@login_required
+def start_deploy(request):
+    # 注意发布前还要检查状态，至少为uploaded
+    params = None
+    if request.POST and request.POST.get('recordId'):
+        record_id_str = request.POST.get('recordId')
+        if not cache.get('log_is_writing_' + record_id_str):
+            record_id = int(record_id_str)
+            filepath = _generate_folder_path()
+            filename = _get_file_name()
+            log_reader = LogReader(record_id, filename, filepath)
+            cache.set('log_reader_' + record_id_str, log_reader, 300)
+            log_writer = LogWriter(
+                record_id = record_id, 
+                filename = filename, 
+                filepath = filepath
+            )
+            log_writer.start()
+            params = {
+                'beginDeploy': True,
+            }
+            
+    if not params:
+        params = {
+            'beginDeploy': False
+        }
+    return HttpResponse(json.dumps(params))
+
+@login_required
+def read_deploy_log_on_realtime(request):
+    record_id_str = request.GET.get('recordId')
+    params = {}
+    if record_id_str:
+        # log_reader在start_deploy的时候生成并放入cache
+        log_reader_key = 'log_reader_' + record_id_str
+        log_reader = cache.get(log_reader_key)
+        if log_reader:
+            params['logInfo'] = log_reader.read_lines()
+            params['isFinished'] = False
+            if cache.get('log_is_writing_' + record_id_str):
+                cache.set(log_reader_key, log_reader, 300)
+            else:
+                cache.delete(log_reader_key)
+            return HttpResponse(json.dumps(params))
+    params['isFinished'] = True
+    return HttpResponse(json.dumps(params))
+
 def _generate_folder_path():
-    return 'c:/tempfiles/copys/'
+    return 'c:/tempfiles/'
+
+def _get_file_name():
+    return 'test.log'

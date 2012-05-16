@@ -161,6 +161,12 @@ USE_MULTITHREADED_SERVER = True
 
 FILE_UPLOAD_TEMP_DIR = 'c:/tempfiles/'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
 # 有可能需要添加自定义的handler
 #FILE_UPLOAD_HANDLERS = (
 #    "django.core.files.uploadhandler.MemoryFileUploadHandler",

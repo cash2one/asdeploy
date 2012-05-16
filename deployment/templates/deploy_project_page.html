@@ -94,13 +94,70 @@ $(function(){
 		})
 		return false;
 	});
-	$('#unlock_and_leave').click(function(){
+	$('#startDeployBtn').click(function(){
+		$.post('/startDeploy/', {
+			recordId: '{{record.id}}'
+		}, function(data){
+			var result = null;
+			try{
+				result = $.parseJSON(data);
+			}catch(e) {
+			}
+			if(!result || result.beginDeploy !== true){
+				alert('发布启动失败!');
+				failedInDeployProcess();
+				return;
+			}else{
+				$('#startDeployBtn').val('发布中').attr({disabled: true});
+				$('#deployStatus').html('发布启动成功').css({color: 'green'});
+				$('#logContent').val('');
+			}
+			setTimeout(readLogOnRealtime, 3000);
+			function readLogOnRealtime(){
+				$.getJSON('/readDeployLogOnRealtime/', {
+					recordId: '{{record.id}}'
+				}, function(data){
+					if(!data){
+						alert('日志实时读取出错了!');
+						failedInDeployProcess();
+						return;
+					}
+					if(data.isFinished === true){
+						alert('发布已完成!');
+						//TODO
+						$('#startDeployBtn').val('重新发布').attr({disabled: false});
+						$('#deployStatus').html('发布已完成').css({color: 'green'});
+						return;
+					}
+					if(!data.isFinished){
+						$logContent = $('#logContent');
+						var newLogInfoArr = [];
+						if(data.logInfo && data.logInfo.length){
+							for(var i=0; i<data.logInfo.length; i++){
+								newLogInfoArr.push(data.logInfo[i]);
+							}
+						}
+						$logContent.val($logContent.val() + newLogInfoArr.join(''));
+						$logContent.scrollTop($logContent[0].scrollHeight - $logContent.height());
+						setTimeout(readLogOnRealtime, 5000)
+					}
+				});
+			}
+		});
+		
+		function failedInDeployProcess(){
+			$('#startDeployBtn').val('重新发布').attr({disabled: false});
+			$('#deployStatus').html('发布失败，请重新发布').css({color: 'red'});
+		}
+	})
+	
+	$('#unlockAndLeave').click(function(){
 		if(!confirm('确认要解锁本次发布并离开?')){
 			return;
 		}
 		window.onbeforeunload = null;
 		location.href = '/unlockDeploy';
-	})
+	});
 });
 window.onbeforeunload = function(){
 	var alarmStr = '发布过程中，请不要离开!\n请点击 [ 取消 ] 或 [ 留在此页 ] ';
@@ -147,19 +204,20 @@ window.onbeforeunload = function(){
 			<div style="padding-top: 20px;">
 				<label>README</label>
 				<br/>
-				<textarea id="readme_content"></textarea>
+				<textarea id="readmeContent"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
-				<input type="button" value="更新web.xml"/>
-				<input type="button" value="发布"/>
+				<input type="button" value="更新web.xml" id="updateXmlBtn"/>
+				<input type="button" value="发布" id="startDeployBtn"/>
+				<span style="font-size: 20px;" id="deployStatus"></span>
 			</div>
 			<div style="padding-top: 20px;">
 				<label>LOG</label>
 				<br/>
-				<textarea id="log_content"></textarea>
+				<textarea id="logContent"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
-				<input type="button" id="unlock_and_leave" value="解锁并返回首页"/>
+				<input type="button" id="unlockAndLeave" value="解锁并返回首页"/>
 			</div>
 		</div>
 	</div>
