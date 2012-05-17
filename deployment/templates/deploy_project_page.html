@@ -110,7 +110,8 @@ $(function(){
 				$('#deployStatus').html('发布启动成功').css({color: 'green'});
 				$('#logContent').val('');
 			}
-			setTimeout(readLogOnRealtime, 3000);
+			var logReadInterval = 3000
+			setTimeout(readLogOnRealtime, logReadInterval);
 			function readLogOnRealtime(){
 				$.getJSON('/readDeployLogOnRealtime/', {
 					recordId: '{{record.id}}'
@@ -137,7 +138,7 @@ $(function(){
 						}
 						$logContent.val($logContent.val() + newLogInfoArr.join(''));
 						$logContent.scrollTop($logContent[0].scrollHeight - $logContent.height());
-						setTimeout(readLogOnRealtime, 5000)
+						setTimeout(readLogOnRealtime, logReadInterval)
 					}
 				});
 			}

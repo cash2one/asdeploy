@@ -31,10 +31,10 @@
 <div class="wrap">
 	<h2>发布详情</h2>
 	<div class="basic_info">
-		<h3>发布者: admin</h3>
-		<h3>发布类型: 补丁</h3>
+		<h3>发布者: {{record.user.username}}</h3>
+		<h3>发布类型: {{record.deploy_item.deploy_type}}</h3>
 		<h3>上传文件名: </h3>
-		<h3>220110628-ad-patch-ziye.gao</h3>
+		<h3>{{record.deploy_item.file_name}}</h3>
 	</div>
 	<div class="sect_wrap">
 		<div class="sect_title">

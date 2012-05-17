@@ -144,11 +144,9 @@ $(function(){
 					<td>
 						<select name="project" id="project">
 							<option value="">请选择</option>
-							<option>ajaxablesky</option>
-							<option>passport</option>
-							<option>cms</option>
-							<option>search</option>
-							<option>payment</option>
+							{% for project in projects %}
+								<option value="{{project.id}}">{{project.name}}</option>
+							{% endfor%}
 						</select>
 					</td>
 					<td class="label">版本:</td>
@@ -208,24 +206,27 @@ $(function(){
 				<th width="150">工程</th>
 				<th width="80">版本</th>
 				<th width="80">类型</th>
+				<th width="100">发布状态</th>
 				<th>操作</th>
 			</tr>
-			{% for i in iters %}
+			{% for record in records %}
 			<tr>
-				<td>1</td>
-				<td>admin</td>
-				<td>2012-05-09 13:00:00</td>
-				<td>ajaxablesky</td>
-				<td>5.12</td>
+				<td>{{record.id}}</td>
+				<td>{{record.user.username}}</td>
+				<td>{{record.formated_create_time}}</td>
+				<td>{{record.project.name}}</td>
+				{% if record.deploy_item %}
+					<td>{{record.deploy_item.version}}</td>
+					<td>{{record.deploy_item.deploy_type}}</td>
+				{% else %}
+					<td>None</td>
+					<td>None</td>
+				{% endif %}
+				<td>{{record.status}}</td>
 				<td>
-					{% if i > 5 %}
-						war包
-					{% else %}
-						补丁
+					{% if record.deploy_item %}
+						<a href="/deployRecordDetail/{{record.id}}/">详情</a>
 					{% endif %}
-				</td>
-				<td>
-					<a href="/deployRecordDetail/1/">详情</a>
 				</td>
 			</tr>
 			{% endfor %}

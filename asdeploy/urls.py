@@ -39,6 +39,6 @@ urlpatterns = patterns('',
     (r'^readDeployLogOnRealtime/$', read_deploy_log_on_realtime), #发布过程中实时查询日志文件
     
     (r'^deployRecordList/(?P<page_num>\d+)/$', deploy_record_list_page),
-    (r'^deployRecordDetail/(?P<deploy_record_id>\d+)/$', deploy_record_detail_page),
+    (r'^deployRecordDetail/(?P<record_id>\d+)/$', deploy_record_detail_page),
 
 )

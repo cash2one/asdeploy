@@ -18,7 +18,7 @@ from django.contrib.auth.decorators import login_required
 
 from deployment.models import *
 from deployment.forms import *
-from deployment.logs import *
+from deployment.logutil import *
 
 @login_required
 def main_page(request):
@@ -147,14 +147,22 @@ def deploy_record_list_page(request, page_num=1):
 #    begin_date = request.GET.get('begin_date')
 #    end_date = request.GET.get('end_date')
 #    project_name = request.GET.get('project_name')
+    projects = Project.objects.all()
+    records = DeployRecord.objects.order_by('-id')
+    for record in records:
+        record.formated_create_time = record.create_time.strftime('%Y-%m-%d %H:%M:%S')
     params = RequestContext(request, {
-        'iters': range(25)
+        'projects': projects,
+        'records': records,
     })
     return render_to_response('deploy_record_list_page.html', params) 
 
 @login_required
-def deploy_record_detail_page(request, deploy_record_id):
-    params = RequestContext(request)
+def deploy_record_detail_page(request, record_id):
+    record = DeployRecord.objects.get(pk = record_id)
+    params = RequestContext(request, {
+        'record': record
+    })
     return render_to_response('deploy_record_detail_page.html', params)
 
 @login_required

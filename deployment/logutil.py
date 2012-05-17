@@ -42,7 +42,6 @@ class LogWriter(threading.Thread):
         f.write('')
         f.close()
         for i in range(20):
-            print i
             f = open(self.file_path + self.file_name, 'a')
             f.write(str(i) + ' content \r\n')
             f.close()
