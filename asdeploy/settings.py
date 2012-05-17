@@ -29,6 +29,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
+#TIME_ZONE = 'GMT-8'
 TIME_ZONE = 'Asia/Shanghai'
 
 # Language code for this installation. All choices can be found here:
@@ -46,7 +47,7 @@ USE_I18N = True
 USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = True
+USE_TZ = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"

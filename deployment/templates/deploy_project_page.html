@@ -49,12 +49,8 @@
 $(function(){
 	var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
 	$('#uploadBtn').click(function(){
-		$(this).ajaxStart(function(){
-			$(this).val('上传中').attr({disabled: true});
-		})
-		.ajaxComplete(function(){
-			$(this).val('重新上传').attr({disabled: false});
-		})
+		var $this = $(this);
+		$this.val('上传中').attr({disabled: true});
 		if(!$('#deployItemField').val()){
 			alert('请先选择要上传的文件!');
 			return false;
@@ -84,12 +80,14 @@ $(function(){
 				}else{
 					this.error(data, status)
 				}
+				$this.val('重新上传').attr({disabled: false});
 			},
 			error: function(data, status, e){
 				$('#uploadResult')
 						.html('文件上传失败!')
 						.css({color: 'red'});
 				$('#uploadDetailWrap').hide();
+				$this.val('重新上传').attr({disabled: false});
 			}
 		})
 		return false;
@@ -204,7 +202,7 @@ window.onbeforeunload = function(){
 			<div style="padding-top: 20px;">
 				<label>README</label>
 				<br/>
-				<textarea id="readmeContent"></textarea>
+				<textarea id="readmeContent" readonly="readonly"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
 				<input type="button" value="更新web.xml" id="updateXmlBtn"/>
@@ -214,7 +212,7 @@ window.onbeforeunload = function(){
 			<div style="padding-top: 20px;">
 				<label>LOG</label>
 				<br/>
-				<textarea id="logContent"></textarea>
+				<textarea id="logContent" readonly="readonly"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
 				<input type="button" id="unlockAndLeave" value="解锁并返回首页"/>
