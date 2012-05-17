@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 
 from django.core.cache import cache
+from django.db.models import Q
 
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
@@ -148,12 +149,40 @@ def deploy_record_list_page(request, page_num=1):
 #    end_date = request.GET.get('end_date')
 #    project_name = request.GET.get('project_name')
     projects = Project.objects.all()
-    records = DeployRecord.objects.order_by('-id')
+    conditions = []
+    query_params = {}
+    if request.POST:
+        username = request.POST.get('username')
+        if username:
+            query_params['username'] = username
+            conditions.append(Q(user__username__icontains = username))
+        proj_id = int(request.POST.get('project'))
+        if proj_id:
+            query_params['project'] = proj_id
+            conditions.append(Q(project__id = proj_id))
+        version = request.POST.get('version')
+        if version:
+            query_params['version'] = version
+            conditions.append(Q(deploy_item__version = version))
+        deploy_type = request.POST.get('deployType')
+        if deploy_type:
+            query_params['deploy_type'] = deploy_type
+            conditions.append(Q(deploy_item__deploy_type = deploy_type))
+        start_time = request.POST.get('startTime')
+        if start_time:
+            query_params['start_time'] = start_time
+            conditions.append(Q(create_time__gte = start_time))
+        end_time = request.POST.get('endTime')
+        if end_time:
+            query_params['end_time'] = end_time
+            conditions.append(Q(create_time__lte = end_time))
+    records = DeployRecord.objects.filter(*conditions).order_by('-id')
     for record in records:
         record.formated_create_time = record.create_time.strftime('%Y-%m-%d %H:%M:%S')
     params = RequestContext(request, {
         'projects': projects,
         'records': records,
+        'query_params': query_params,
     })
     return render_to_response('deploy_record_list_page.html', params) 
 

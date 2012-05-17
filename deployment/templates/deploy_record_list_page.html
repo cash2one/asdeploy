@@ -113,7 +113,9 @@ $(function(){
 			});
 		}
 	}));
-	$("#ui-datepicker-div").css('font-size','0.8em')
+	$('#ui-datepicker-div').css('font-size','0.8em');
+	$('#project').val('{{query_params.project}}');
+	$('#deployType').val('{{query_params.deploy_type}}');
 })
 </script>
 {% endblock %}
@@ -128,14 +130,14 @@ $(function(){
 				<tr>
 					<td class="label">用户名:</td>
 					<td>
-						<input name="username" id="username"/>
+						<input name="username" id="username" value="{{query_params.username}}"/>
 					</td>
 					<td class="label">发布类型</td>
 					<td>
 						<select name="deployType" id="deployType">
 							<option value="">请选择</option>
-							<option>war包</option>
-							<option>补丁</option>
+							<option value="war">war包</option>
+							<option value="patch">补丁</option>
 						</select>
 					</td>
 				</tr>
@@ -143,7 +145,7 @@ $(function(){
 					<td class="label">工程:</td>
 					<td>
 						<select name="project" id="project">
-							<option value="">请选择</option>
+							<option value="0">请选择</option>
 							{% for project in projects %}
 								<option value="{{project.id}}">{{project.name}}</option>
 							{% endfor%}
@@ -151,22 +153,22 @@ $(function(){
 					</td>
 					<td class="label">版本:</td>
 					<td>
-						<input name="version" id="version"/>
+						<input name="version" id="version" value="{{query_params.version}}"/>
 					</td>
 				</tr>
 				<tr>
 					<td class="label">开始时间</td>
 					<td>
-						<input name="startTime" id="startTime"/>
+						<input name="startTime" id="startTime" value="{{query_params.start_time}}"/>
 					</td>
 					<td class="label">结束时间</td>
 					<td>
-						<input name="endTime" id="endTime"/>
+						<input name="endTime" id="endTime" value="{{query_params.end_time}}"/>
 					</td>
 				</tr>
 				<tr>
 					<td colspan="4" style="text-align: center;">
-						<input type="button" value="查询" style="font-size:15px;"/>
+						<input type="submit" value="查询" style="font-size:15px;"/>
 					</td>
 				</tr>
 			</table>
