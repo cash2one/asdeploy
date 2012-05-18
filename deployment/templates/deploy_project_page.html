@@ -50,11 +50,11 @@ $(function(){
 	var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
 	$('#uploadBtn').click(function(){
 		var $this = $(this);
-		$this.val('上传中').attr({disabled: true});
 		if(!$('#deployItemField').val()){
 			alert('请先选择要上传的文件!');
 			return false;
 		}
+		$this.val('上传中').attr({disabled: true});
 		$.ajaxFileUpload({
 			url: '/uploadDeployItem/',
 			secureuri: false, 
@@ -142,7 +142,13 @@ $(function(){
 					}
 				});
 			}
-		});
+		}
+		// function(){
+			// alert('发布启动失败!');
+			// failedInDeployProcess();
+			// return;
+		// }
+		);
 		
 		function failedInDeployProcess(){
 			$('#startDeployBtn').val('重新发布').attr({disabled: false});

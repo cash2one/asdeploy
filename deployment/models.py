@@ -15,16 +15,15 @@ class Project(models.Model):
 
 
 class DeployItem(models.Model):
-    DEPLOY_TYPE = {
-        'WAR': 'war',
-        'PATCH': 'patch'
-    }
+    WAR = 'war'
+    PATCH = 'patch'
+
     user = models.ForeignKey(User)
     project = models.ForeignKey(Project)
     version = models.CharField(max_length = 11)
     deploy_type = models.CharField(max_length=15)
     file_name = models.CharField(max_length = 100)
-    folder_path = models.FilePathField(null = True)
+    folder_path = models.CharField(max_length = 512, null = True)
     create_time = models.DateTimeField()
     update_time = models.DateTimeField(null = True)
     

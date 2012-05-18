@@ -13,12 +13,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'asdeploydb',                      # Or path to database file if using sqlite3.
-        'USER': 'root',                      # Not used with sqlite3.
-        'PASSWORD': 'mysqlpwd1',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+#        'USER': 'root',                      # Not used with sqlite3.
+#        'PASSWORD': 'mysqlpwd1',                  # Not used with sqlite3.
+#        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
+#        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -160,7 +160,7 @@ LOGGING = {
 
 USE_MULTITHREADED_SERVER = True
 
-FILE_UPLOAD_TEMP_DIR = 'c:/tempfiles/'
+FILE_UPLOAD_TEMP_DIR = '/v/content/web-app-bak/ableskyapps/tempuploads/'
 
 CACHES = {
     'default': {

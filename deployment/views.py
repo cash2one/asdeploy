@@ -1,5 +1,6 @@
 #coding:utf-8
 
+import os
 import json
 from datetime import datetime
 
@@ -9,17 +10,18 @@ from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
-#from django.template import Context
-#from django.template.loader import get_template
 from django.shortcuts import render_to_response
 
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 
+from deployment.deploysetting import *
 from deployment.models import *
 from deployment.forms import *
 from deployment.logutil import *
+from deployment.deployimpl import *
+
 
 @login_required
 def main_page(request):
@@ -133,21 +135,9 @@ def unlock_deploy(request):
         curLock.save()
     return HttpResponseRedirect('/')
 
-#@login_required
-#def deploy_project_page(request):
-#    params = RequestContext(request, {
-#        'project': 'passport',
-#        'version': '1.1',
-#        'deployType': 'war',
-#    })
-#    return render_to_response('deploy_project_page.html', params)
 
 @login_required
 def deploy_record_list_page(request, page_num=1):
-#    username = request.GET.get('username')
-#    begin_date = request.GET.get('begin_date')
-#    end_date = request.GET.get('end_date')
-#    project_name = request.GET.get('project_name')
     projects = Project.objects.all()
     conditions = []
     query_params = {}
@@ -198,15 +188,25 @@ def deploy_record_detail_page(request, record_id):
 def upload_deploy_item(request):
     params = {}
     if request.POST and request.FILES:
+        flag = True ##也许下面可以try一下
         proj_id = int(request.POST.get('projId'))
         record_id = int(request.POST.get('recordId'))
         version = request.POST.get('version')
         deploy_type = request.POST.get('deployType')
+        
+        project = Project.objects.get(pk = proj_id)
+        
         deploy_item_file = request.FILES.get('deployItemField')
         filename = deploy_item_file.name
         size = deploy_item_file.size
+        
         # 路径配置信息待改
-        folderpath = _generate_folder_path()
+        folderpath = _generate_upload_folder_path(
+            proj_name = project.name, 
+            version = version)
+        if not os.path.isdir(folderpath):
+            flag = os.makedirs(folderpath)
+        
         destination = open(folderpath + filename, 'wb+')
         for chunk in deploy_item_file.chunks():
             destination.write(chunk)
@@ -218,14 +218,13 @@ def upload_deploy_item(request):
         if not item:
             item = DeployItem(
                 user = request.user,
-                project = Project.objects.get(pk = proj_id),
+                project = project,
                 version = version,
                 deploy_type = deploy_type,
                 file_name = filename,
                 folder_path = folderpath,
                 create_time = now_time,
-                update_time = now_time
-            )
+                update_time = now_time)
         else:
             item.update_time = now_time
         item.save()
@@ -238,7 +237,7 @@ def upload_deploy_item(request):
             
         params['filename'] = filename
         params['size'] = size
-        params['isSuccess'] = True
+        params['isSuccess'] = flag
     else:
         params['isSuccess'] = False
     return HttpResponse(json.dumps(params))
@@ -247,27 +246,26 @@ def upload_deploy_item(request):
 def start_deploy(request):
     # 注意发布前还要检查状态，至少为uploaded
     params = None
+    error_msg = ''
     if request.POST and request.POST.get('recordId'):
         record_id_str = request.POST.get('recordId')
-        if not cache.get('log_is_writing_' + record_id_str):
-            record_id = int(record_id_str)
-            filepath = _generate_folder_path()
-            filename = _get_file_name()
-            log_reader = LogReader(record_id, filename, filepath)
+        record = DeployRecord.objects.get(pk = int(record_id_str))
+        if record.status == DeployRecord.PREPARE:
+            error_msg = '尚未上传文件'
+        elif cache.get('log_is_writing_' + record_id_str):
+            error_msg = '发布仍在继续中...'
+        else:
+            log_reader = LogReader()
             cache.set('log_reader_' + record_id_str, log_reader, 300)
-            log_writer = LogWriter(
-                record_id = record_id, 
-                filename = filename, 
-                filepath = filepath
-            )
-            log_writer.start()
+            deployer = Deployer(record = record)
+            deployer.start()
             params = {
                 'beginDeploy': True,
             }
-            
     if not params:
         params = {
-            'beginDeploy': False
+            'beginDeploy': False,
+            'errorMsg': error_msg
         }
     return HttpResponse(json.dumps(params))
 
@@ -287,11 +285,12 @@ def read_deploy_log_on_realtime(request):
             else:
                 cache.delete(log_reader_key)
             return HttpResponse(json.dumps(params))
+    deploy_result_key = 'deploy_result_' + record_id_str
+    deploy_result = cache.get(deploy_result_key)
+    cache.delete(deploy_result_key)
     params['isFinished'] = True
+    params['deployResult'] = deploy_result
     return HttpResponse(json.dumps(params))
 
-def _generate_folder_path():
-    return 'c:/tempfiles/'
-
-def _get_file_name():
-    return 'test.log'
+def _generate_upload_folder_path(proj_name, version):
+    return get_target_folder(proj_name, version)
