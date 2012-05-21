@@ -35,6 +35,7 @@ urlpatterns = patterns('',
 #    (r'^deployProject/$', deploy_project_page),
     (r'^uploadDeployItem/$', upload_deploy_item),
     
+    (r'^decompressItem/$', decompress_item), #解压补丁
     (r'^startDeploy/$', start_deploy),  # 点击发布按钮
     (r'^readDeployLogOnRealtime/$', read_deploy_log_on_realtime), #发布过程中实时查询日志文件
     

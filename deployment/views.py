@@ -2,6 +2,7 @@
 
 import os
 import json
+import chardet
 from datetime import datetime
 
 from django.core.cache import cache
@@ -188,7 +189,7 @@ def deploy_record_detail_page(request, record_id):
 def upload_deploy_item(request):
     params = {}
     if request.POST and request.FILES:
-        flag = True ##也许下面可以try一下
+        flag = True ##也许下面应该try一下
         proj_id = int(request.POST.get('projId'))
         record_id = int(request.POST.get('recordId'))
         version = request.POST.get('version')
@@ -200,7 +201,6 @@ def upload_deploy_item(request):
         filename = deploy_item_file.name
         size = deploy_item_file.size
         
-        # 路径配置信息待改
         folderpath = _generate_upload_folder_path(
             proj_name = project.name, 
             version = version)
@@ -243,8 +243,34 @@ def upload_deploy_item(request):
     return HttpResponse(json.dumps(params))
 
 @login_required
+def decompress_item(request):
+    params = {}
+    if request.POST and request.POST.get('recordId'):
+        record_id_str = request.POST.get('recordId')
+        record = DeployRecord.objects.get(pk = int(record_id_str))
+        item = record.deploy_item
+        flag = False
+        if item and item.file_name.endswith('.zip'):
+            unziped_folder = item.folder_path + trim_compress_suffix(item.file_name) + '/'
+            if os.path.isdir(unziped_folder):
+                os.system('rm -rf ' + unziped_folder)
+            flag = 0 == os.system('unzip -o ' + item.folder_path + item.file_name + ' -d ' + item.folder_path)
+        if flag:
+            params['isSuccess'] = True
+            readme_path = unziped_folder + 'readme.txt'
+            if os.path.isfile(readme_path):
+                readme_f = open(readme_path, 'r')
+                lines = readme_f.readlines()
+                readme_f.close()
+                readme = ''.join(lines)
+                params['readme'] = convert2utf8(readme)
+    if not params.has_key('isSuccess'):
+        params['isSuccess'] = False
+    return HttpResponse(json.dumps(params))
+
+@login_required
 def start_deploy(request):
-    # 注意发布前还要检查状态，至少为uploaded
+    # 发布前需要检查状态，至少为uploaded
     params = None
     error_msg = ''
     if request.POST and request.POST.get('recordId'):
@@ -259,6 +285,8 @@ def start_deploy(request):
             cache.set('log_reader_' + record_id_str, log_reader, 300)
             deployer = Deployer(record = record)
             deployer.start()
+            record.status = DeployRecord.DEPLOYING
+            record.save()
             params = {
                 'beginDeploy': True,
             }
@@ -288,9 +316,22 @@ def read_deploy_log_on_realtime(request):
     deploy_result_key = 'deploy_result_' + record_id_str
     deploy_result = cache.get(deploy_result_key)
     cache.delete(deploy_result_key)
+    record = DeployRecord.objects.get(pk = int(record_id_str))
+    record.status = deploy_result and DeployRecord.SUCCESS or DeployRecord.FAILURE
+    record.save()
     params['isFinished'] = True
     params['deployResult'] = deploy_result
     return HttpResponse(json.dumps(params))
 
 def _generate_upload_folder_path(proj_name, version):
     return get_target_folder(proj_name, version)
+
+def convert2utf8(content):
+    encode_manner = chardet.detect(content)
+    if not encode_manner:
+        return content
+    if encode_manner['confidence'] < 0.9:
+        return content
+    if encode_manner['encoding'] == 'utf-8':
+        return content
+    return content.decode(encode_manner['encoding']).encode('utf8')

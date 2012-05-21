@@ -34,7 +34,7 @@ class DeployItem(models.Model):
 class DeployRecord(models.Model):
     PREPARE = 'prepare'
     UPLOADED = 'uploaded'
-    PUBLISING = 'deploying'
+    DEPLOYING = 'deploying'
     SUCCESS = 'success'
     FAILURE = 'failure'
     ROLLBACK = 'rollback'

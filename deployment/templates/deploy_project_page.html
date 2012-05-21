@@ -92,6 +92,32 @@ $(function(){
 		})
 		return false;
 	});
+	
+	if('{{deployType}}' == 'war'){
+		$('#decompressBtn').attr({disabled: true}).css({display: 'none'});
+	}
+	$('#decompressBtn').click(function(){
+		$('#decompressBtn').val('解压中').attr({disabled:true});
+		$.post('/decompressItem/', {
+			recordId: '{{record.id}}'
+		}, function(data){
+			$('#decompressBtn').val('解压补丁文件').attr({disabled:false});
+			var result = null;
+			try{
+				result = $.parseJSON(data);
+			}catch(e) {
+			}
+			if(result && result.isSuccess === true){
+				if(result.readme){
+					$('#readmeContent').val(result.readme);
+				}
+				alert('解压缩成功!');
+			}else{
+				alert('解压缩失败!')
+			}
+		})
+	});
+	
 	$('#startDeployBtn').click(function(){
 		$.post('/startDeploy/', {
 			recordId: '{{record.id}}'
@@ -142,13 +168,7 @@ $(function(){
 					}
 				});
 			}
-		}
-		// function(){
-			// alert('发布启动失败!');
-			// failedInDeployProcess();
-			// return;
-		// }
-		);
+		});
 		
 		function failedInDeployProcess(){
 			$('#startDeployBtn').val('重新发布').attr({disabled: false});
@@ -205,7 +225,7 @@ window.onbeforeunload = function(){
 	</div>
 	<div class="sect_wrap">
 		<div class="check_area">
-			<input type="button" value="解压并检查上传文件"/>
+			<input type="button" value="解压补丁文件" id="decompressBtn"/>
 			<div style="padding-top: 20px;">
 				<label>README</label>
 				<br/>
