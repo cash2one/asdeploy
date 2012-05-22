@@ -6,7 +6,7 @@
 		padding-top: 50px;
 	}
 	div.sect_wrap {
-		width: 500px;
+		width: 750px;
 		margin: 0px auto 50px;
 	}
 	.sect_title {
@@ -18,7 +18,7 @@
 		margin: 0px auto;
 		overflow-y: scroll;
 		font-size: 15px;
-		width: 500px;
+		width: 750px;
 		height: 300px;
 	}
 	div.basic_info h3 {
@@ -41,12 +41,7 @@
 			<label>readme</label>
 		</div>
 		<br/>
-		<textarea readonly="readonly" class="sect_content">
-Django is a high-level Python web application framework designed to support the development of dynamic websites, web applications, and web services. It is designed to promote rapid development and clean, pragmatic design and lets you build
-high-performing, elegant web applications quickly.
-In this book, you will learn about employing this MVC web framework, which is written in Python, a powerful and popular programming language. The book emphasizes utilizing Django and Python to create a Web 2.0 bookmark-sharing application with many common features found in today's Web 2.0 sites. The book follows a tutorial style to introduce concepts and explain solutions to problems. It is not meant to be a reference manual for Python or Django. Django will be explained as we build features throughout the chapters, until we realize our goal of having a working Web 2.0 application for storing and sharing bookmarks.
-I sincerely hope that you will enjoy reading the book as much as I enjoyed writing it. And I am sure that by its end, you will appreciate the benefits of using Python and Django for your next project. They are powerful, simple, and provide a robust environment for rapid development of your dynamic web applications.
-		</textarea>
+		<textarea readonly="readonly" class="sect_content">{{readme}}</textarea>
 	</div>
 	
 	<div class="sect_wrap">
@@ -54,25 +49,15 @@ I sincerely hope that you will enjoy reading the book as much as I enjoyed writi
 			<label>发布文件列表</label>
 		</div>
 		<br/>
-		<textarea readonly="readonly" class="sect_content">
-Django is a high-level Python web application framework designed to support the development of dynamic websites, web applications, and web services. It is designed to promote rapid development and clean, pragmatic design and lets you build
-high-performing, elegant web applications quickly.
-In this book, you will learn about employing this MVC web framework, which is written in Python, a powerful and popular programming language. The book emphasizes utilizing Django and Python to create a Web 2.0 bookmark-sharing application with many common features found in today's Web 2.0 sites. The book follows a tutorial style to introduce concepts and explain solutions to problems. It is not meant to be a reference manual for Python or Django. Django will be explained as we build features throughout the chapters, until we realize our goal of having a working Web 2.0 application for storing and sharing bookmarks.
-I sincerely hope that you will enjoy reading the book as much as I enjoyed writing it. And I am sure that by its end, you will appreciate the benefits of using Python and Django for your next project. They are powerful, simple, and provide a robust environment for rapid development of your dynamic web applications.
-		</textarea>
+		<textarea readonly="readonly" class="sect_content">{{fileList}}</textarea>
 	</div>
 	
-	<div class="sect_wrap">
+	<div class="sect_wrap"  style="display:none;">
 		<div class="sect_title">
 			<label>发布日志</label>
 		</div>
 		<br/>
-		<textarea readonly="readonly" class="sect_content">
-Django is a high-level Python web application framework designed to support the development of dynamic websites, web applications, and web services. It is designed to promote rapid development and clean, pragmatic design and lets you build
-high-performing, elegant web applications quickly.
-In this book, you will learn about employing this MVC web framework, which is written in Python, a powerful and popular programming language. The book emphasizes utilizing Django and Python to create a Web 2.0 bookmark-sharing application with many common features found in today's Web 2.0 sites. The book follows a tutorial style to introduce concepts and explain solutions to problems. It is not meant to be a reference manual for Python or Django. Django will be explained as we build features throughout the chapters, until we realize our goal of having a working Web 2.0 application for storing and sharing bookmarks.
-I sincerely hope that you will enjoy reading the book as much as I enjoyed writing it. And I am sure that by its end, you will appreciate the benefits of using Python and Django for your next project. They are powerful, simple, and provide a robust environment for rapid development of your dynamic web applications.
-		</textarea>
+		<textarea readonly="readonly" class="sect_content"></textarea>
 	</div>
 </div>
 {% endblock %}

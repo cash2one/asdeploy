@@ -2,6 +2,7 @@
 
 import os
 import json
+import string
 import chardet
 from datetime import datetime
 
@@ -92,6 +93,10 @@ def deploy_init_option_page(request):
             (record, lock) = _before_deploy_project(request, _params)
             _params['record'] = record
             _params['lock'] = lock
+            #读取日志
+            folder_path = _generate_upload_folder_path(project.name, version);
+            readme_content = _get_readme_content(folder_path)
+            _params['readmeContent'] = readme_content
             params = RequestContext(request, _params)
             return render_to_response('deploy_project_page.html', params)
     params = RequestContext(request, {
@@ -180,10 +185,46 @@ def deploy_record_list_page(request, page_num=1):
 @login_required
 def deploy_record_detail_page(request, record_id):
     record = DeployRecord.objects.get(pk = record_id)
+    item = record.deploy_item
+    readme = ''
+    file_list_content = ''
+    if item.deploy_type == DeployItem.PATCH:
+        folder_path = item.folder_path + trim_compress_suffix(item.file_name) + '/'
+        readme = _get_readme_content(folder_path)
+        file_list = _get_file_list(folder_path)
+        file_list_content = '\r\n'.join(file_list)
+    elif item.deploy_type == DeployItem.WAR:
+        readme = _get_readme_content(item.folder_path)
+        file_list_content = item.file_name
+        
     params = RequestContext(request, {
-        'record': record
+        'record': record,
+        'readme': readme,
+        'fileList': file_list_content,
     })
     return render_to_response('deploy_record_detail_page.html', params)
+
+# 上传readme只限版本发布
+@login_required
+def upload_readme(request):
+    params = {}
+    if request.POST and request.FILES:
+        proj_name = request.POST.get('projName')
+        version =request.POST.get('version')
+        folderpath = _generate_upload_folder_path(proj_name, version)
+        if not os.path.isdir(folderpath):
+            os.makedirs(folderpath)
+        readme_file = request.FILES.get('readmeField')
+        destination = open(folderpath + 'readme.txt', 'wb+')
+        for chunk in readme_file.chunks():
+            destination.write(chunk)
+        destination.close()
+        readme_content = _get_readme_content(folderpath)
+        params['isSuccess'] = True
+        params['readmeContent'] = readme_content
+    else:
+        params['isSuccess'] = False
+    return HttpResponse(json.dumps(params))
 
 @login_required
 def upload_deploy_item(request):
@@ -201,9 +242,7 @@ def upload_deploy_item(request):
         filename = deploy_item_file.name
         size = deploy_item_file.size
         
-        folderpath = _generate_upload_folder_path(
-            proj_name = project.name, 
-            version = version)
+        folderpath = _generate_upload_folder_path(project.name, version)
         if not os.path.isdir(folderpath):
             flag = os.makedirs(folderpath)
         
@@ -257,13 +296,8 @@ def decompress_item(request):
             flag = 0 == os.system('unzip -o ' + item.folder_path + item.file_name + ' -d ' + item.folder_path)
         if flag:
             params['isSuccess'] = True
-            readme_path = unziped_folder + 'readme.txt'
-            if os.path.isfile(readme_path):
-                readme_f = open(readme_path, 'r')
-                lines = readme_f.readlines()
-                readme_f.close()
-                readme = ''.join(lines)
-                params['readme'] = convert2utf8(readme)
+            params['readme'] = _get_readme_content(unziped_folder)
+                
     if not params.has_key('isSuccess'):
         params['isSuccess'] = False
     return HttpResponse(json.dumps(params))
@@ -326,7 +360,41 @@ def read_deploy_log_on_realtime(request):
 def _generate_upload_folder_path(proj_name, version):
     return get_target_folder(proj_name, version)
 
+def _get_readme_content(folder_path):
+    readme_path = folder_path + 'readme.txt'
+    if os.path.isfile(readme_path):
+        readme_f = open(readme_path, 'r')
+        lines = readme_f.readlines()
+        readme_f.close()
+        readme =  ''.join(lines)
+    else:
+        readme = ''
+    return convert2utf8(readme)
+
+def _get_file_list(root_path, depth = 0):
+    if not os.path.isdir(root_path):
+        return []
+    f_list = []
+    if not root_path.endswith('/'):
+        root_path += '/'
+    f_dirs = os.listdir(root_path)
+    for f in f_dirs:
+        f_path = root_path + f
+        if os.path.isdir(f_path):
+            f_list += _get_file_list(f_path, depth + 1)
+        elif os.path.isfile(f_path):
+            f_list.append(f_path)
+    if depth == 0:
+        for i in range(len(f_list)):
+            s =  f_list[i][len(root_path):]
+            s = string.replace(s, '/', '.')
+            f_list[i] = s
+        f_list.sort()
+    return f_list
+
 def convert2utf8(content):
+    if not content:
+        return content
     encode_manner = chardet.detect(content)
     if not encode_manner:
         return content

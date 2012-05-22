@@ -6,7 +6,7 @@
 		padding-top: 50px;
 	}
 	div.sect_wrap {
-		width: 700px;
+		width: 800px;
 		text-align: left;
 		margin: 0px auto 20px;
 	}
@@ -20,7 +20,7 @@
 	}
 	div.sect_wrap textarea {
 		font-size: 20px;
-		width: 700px;
+		width: 800px;
 		height: 200px;
 	}
 	ul.deploy_init_info {
@@ -78,7 +78,8 @@ $(function(){
 					$('#uploadFileSize').html('文件大小: ' + sizeStr).css({color: 'green'});
 					$('#uploadDetailWrap').show();
 				}else{
-					this.error(data, status)
+					this.error(data, status);
+					return;
 				}
 				$this.val('重新上传').attr({disabled: false});
 			},
@@ -89,9 +90,55 @@ $(function(){
 				$('#uploadDetailWrap').hide();
 				$this.val('重新上传').attr({disabled: false});
 			}
-		})
+		});
 		return false;
 	});
+	
+	if('{{deployType}}' == 'patch'){
+		$('#toggleReadmeUpdateBtn').attr({disabled: true}).css({display: 'none'});
+		$('#uploadReadmeBtn').attr({disabled: true}).css({display: 'none'});
+		$('#readmeField').css({display: 'none'});
+	}
+	$('#toggleReadmeUpdateBtn').toggle(function(){
+		$('#readmeUpdateArea').slideDown();
+		$(this).val('收起readme更新区');
+	}, function(){
+		$('#readmeUpdateArea').slideUp();
+		$(this).val('更新readme');
+	});
+	$('#uploadReadmeBtn').click(function(){
+		if(!$('#readmeField').val()){
+			alert('请先选择要上传的readme文件!');
+			return false;
+		}
+		$this = $(this);
+		$this.val('readme上传中').attr({disabled: true});
+		$.ajaxFileUpload({
+			url: '/uploadReadme/',
+			secureuri: false, 
+			fileElementId:'readmeField',
+			dataType: 'json',
+			data: {
+				csrfmiddlewaretoken: csrfToken,
+				projName: '{{project.name}}',
+				version: '{{version}}',
+			},
+			success: function (data, status){
+				if(typeof data == 'object' && data.isSuccess === true){
+					$('#readmeContent').val(data.readmeContent);
+				}else{
+					this.error(data, status);
+					return;
+				}
+				$this.val('上传新的readme').attr({disabled: false});
+			},
+			error: function(data, status, e){
+				alert('readme上传失败');
+				$this.val('上传新的readme').attr({disabled: false});
+			}
+		})
+	});
+	
 	
 	if('{{deployType}}' == 'war'){
 		$('#decompressBtn').attr({disabled: true}).css({display: 'none'});
@@ -136,7 +183,7 @@ $(function(){
 				$('#deployStatus').html('发布启动成功').css({color: 'green'});
 				$('#logContent').val('');
 			}
-			var logReadInterval = 3000
+			var logReadInterval = 1500;
 			setTimeout(readLogOnRealtime, logReadInterval);
 			function readLogOnRealtime(){
 				$.getJSON('/readDeployLogOnRealtime/', {
@@ -226,10 +273,15 @@ window.onbeforeunload = function(){
 	<div class="sect_wrap">
 		<div class="check_area">
 			<input type="button" value="解压补丁文件" id="decompressBtn"/>
+			<input type="button" value="更新readme" id="toggleReadmeUpdateBtn"/>
+			<div id="readmeUpdateArea" style="display:none; padding-top:20px;">
+				<input type="file" name="readmeField" id="readmeField"/>
+				<input type="button" value="上传新的readme" id="uploadReadmeBtn"/>
+			</div>
 			<div style="padding-top: 20px;">
 				<label>README</label>
 				<br/>
-				<textarea id="readmeContent" readonly="readonly"></textarea>
+				<textarea id="readmeContent" readonly="readonly">{{readmeContent}}</textarea>
 			</div>
 			<div style="padding-top: 20px;">
 				<input type="button" value="更新web.xml" id="updateXmlBtn"/>
@@ -239,7 +291,7 @@ window.onbeforeunload = function(){
 			<div style="padding-top: 20px;">
 				<label>LOG</label>
 				<br/>
-				<textarea id="logContent" readonly="readonly"></textarea>
+				<textarea id="logContent" readonly="readonly" style="height: 400px;"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
 				<input type="button" id="unlockAndLeave" value="解锁并返回首页"/>

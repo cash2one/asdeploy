@@ -32,8 +32,8 @@ urlpatterns = patterns('',
     (r'^unlockDeploy/$', unlock_deploy),
     
     (r'^deployInitOption/$', deploy_init_option_page),
-#    (r'^deployProject/$', deploy_project_page),
     (r'^uploadDeployItem/$', upload_deploy_item),
+    (r'^uploadReadme/$', upload_readme),
     
     (r'^decompressItem/$', decompress_item), #解压补丁
     (r'^startDeploy/$', start_deploy),  # 点击发布按钮
