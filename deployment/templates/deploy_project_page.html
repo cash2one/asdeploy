@@ -181,6 +181,7 @@ $(function(){
 				return;
 			}else{
 				$('#startDeployBtn').val('发布中').attr({disabled: true});
+				$('#startRollbackBtn').attr({disabled: true});
 				$('#deployStatus').html('发布启动成功').css({color: 'green'});
 				$('#logContent').val('');
 			}
@@ -197,8 +198,8 @@ $(function(){
 					}
 					if(data.isFinished === true){
 						alert('发布已完成!');
-						//TODO
 						$('#startDeployBtn').val('重新发布').attr({disabled: false});
+						$('#startRollbackBtn').attr({disabled: false});
 						if(data.deployResult === true){
 							$('#deployStatus').html('发布成功').css({color: 'green'});
 						}else{
@@ -225,9 +226,81 @@ $(function(){
 		function failedInDeployProcess(errorMsg){
 			var tip = errorMsg? ' [ ' + errorMsg + ' ] ' : '';
 			$('#startDeployBtn').val('重新发布').attr({disabled: false});
+			$('#startRollbackBtn').attr({disabled: false});
 			$('#deployStatus').html('发布失败，请重新发布' + tip).css({color: 'red'});
 		}
-	})
+	});
+	
+	if('{{deployType}}' == 'war'){
+		$('#startRollbackBtn').attr({disabled: true}).css({display: 'none'});
+	}
+	$('#startRollbackBtn').click(function(){
+		var $this = $(this);
+		$.post('/startRollback/', {
+			recordId: '{{record.id}}',
+			deployType: '{{deployType}}',
+		}, function(data){
+			var result = null;
+			try{
+				result = $.parseJSON(data);
+			}catch(e) {
+			}
+			if(!result || result.beginDeploy !== true){
+				alert('回滚启动失败!');
+				failedInDeployProcess(result.errorMsg);
+				return;
+			}else{
+				$this.val('回滚中').attr({disabled: true});
+				$('#startDeployBtn').attr({disabled: true});
+				$('#deployStatus').html('回滚启动成功').css({color: 'green'});
+				$('#logContent').val('');
+			}
+			var logReadInterval = 1500;
+			setTimeout(readLogOnRealtime, logReadInterval);
+			function readLogOnRealtime(){
+				$.getJSON('/readDeployLogOnRealtime/', {
+					recordId: '{{record.id}}'
+				}, function(data){
+					if(!data){
+						alert('日志实时读取出错了!');
+						failedInDeployProcess();
+						return;
+					}
+					if(data.isFinished === true){
+						alert('回滚已完成!');
+						//TODO
+						$this.val('回滚').attr({disabled: false});
+						$('#startDeployBtn').attr({disabled: false});
+						if(data.deployResult === true){
+							$('#deployStatus').html('回滚成功').css({color: 'green'});
+						}else{
+							$('#deployStatus').html('回滚失败').css({color: 'red'});
+						}
+						return;
+					}
+					if(!data.isFinished){
+						$logContent = $('#logContent');
+						var newLogInfoArr = [];
+						if(data.logInfo && data.logInfo.length){
+							for(var i=0; i<data.logInfo.length; i++){
+								newLogInfoArr.push(data.logInfo[i]);
+							}
+						}
+						$logContent.val($logContent.val() + newLogInfoArr.join(''));
+						$logContent.scrollTop($logContent[0].scrollHeight - $logContent.height());
+						setTimeout(readLogOnRealtime, logReadInterval)
+					}
+				});
+			}
+		});
+		
+		function failedInDeployProcess(errorMsg){
+			var tip = errorMsg? ' [ ' + errorMsg + ' ] ' : '';
+			$('#startRollbackBtn').val('回滚').attr({disabled: false});
+			$('#startDeployBtn').attr({disabled: false});
+			$('#deployStatus').html('回滚失败，请重新发布' + tip).css({color: 'red'});
+		}
+	});
 	
 	$('#unlockAndLeave').click(function(){
 		if(!confirm('确认要解锁本次发布并离开?')){
@@ -291,6 +364,7 @@ window.onbeforeunload = function(){
 			</div>
 			<div style="padding-top: 20px;">
 				<input type="button" value="发布" id="startDeployBtn"/>
+				<input type="button" value="回滚" id="startRollbackBtn"/>
 				<span style="font-size: 20px;" id="deployStatus"></span>
 			</div>
 			<div style="padding-top: 20px;">

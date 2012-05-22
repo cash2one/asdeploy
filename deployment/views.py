@@ -313,6 +313,37 @@ def decompress_item(request):
     return HttpResponse(json.dumps(params))
 
 @login_required
+def start_rollback(request):
+    params = None
+    error_msg = ''
+    if request.POST and request.POST.get('recordId'):
+        record_id_str = request.POST.get('recordId')
+        record = DeployRecord.objects.get(pk = int(record_id_str))
+        deploy_type = request.POST.get('deployType')
+        if deploy_type != DeployItem.PATCH:
+            error_msg = '只有补丁的发布可以回滚'
+        elif record.status != DeployRecord.SUCCESS and record.status != DeployRecord.FAILURE:
+            error_msg = '只有完成后的发布可以回滚'
+        elif cache.get('log_is_writing_' + record_id_str):
+            error_msg = '发布仍在继续中...'
+        else:
+            log_reader = LogReader()
+            cache.set('log_reader_' + record_id_str, log_reader, 300)
+            deployer = Deployer(record = record, direct = 'rollback')
+            deployer.start()
+            record.status = DeployRecord.ROLLBACK
+            record.save()
+            params = {
+                'beginDeploy': True,
+            }
+    if not params:
+        params = {
+            'beginDeploy': False,
+            'errorMsg': error_msg
+        }
+    return HttpResponse(json.dumps(params))
+
+@login_required
 def start_deploy(request):
     # 发布前需要检查状态，至少为uploaded
     params = None
