@@ -94,9 +94,10 @@ def deploy_init_option_page(request):
             _params['record'] = record
             _params['lock'] = lock
             #读取日志
-            folder_path = _generate_upload_folder_path(project.name, version);
-            readme_content = _get_readme_content(folder_path)
-            _params['readmeContent'] = readme_content
+            if deploy_type == DeployItem.WAR:
+                folder_path = _generate_upload_folder_path(project.name, version);
+                readme_content = _get_readme_content(folder_path)
+                _params['readmeContent'] = readme_content
             params = RequestContext(request, _params)
             return render_to_response('deploy_project_page.html', params)
     params = RequestContext(request, {
@@ -310,8 +311,14 @@ def start_deploy(request):
     if request.POST and request.POST.get('recordId'):
         record_id_str = request.POST.get('recordId')
         record = DeployRecord.objects.get(pk = int(record_id_str))
+        deploy_type = request.POST.get('deployType')
+        
+        # 版本发布需要web.xml
+        web_xml_path = SHELL_ROOT_PATH + record.project.name + '-deploy/web.xml'
         if record.status == DeployRecord.PREPARE:
             error_msg = '尚未上传文件'
+        elif deploy_type == DeployItem.WAR and not os.path.isfile(web_xml_path):
+            error_msg = '与版本发布相对应的web.xml不存在'
         elif cache.get('log_is_writing_' + record_id_str):
             error_msg = '发布仍在继续中...'
         else:

@@ -167,7 +167,8 @@ $(function(){
 	
 	$('#startDeployBtn').click(function(){
 		$.post('/startDeploy/', {
-			recordId: '{{record.id}}'
+			recordId: '{{record.id}}',
+			deployType: '{{deployType}}',
 		}, function(data){
 			var result = null;
 			try{
@@ -176,7 +177,7 @@ $(function(){
 			}
 			if(!result || result.beginDeploy !== true){
 				alert('发布启动失败!');
-				failedInDeployProcess();
+				failedInDeployProcess(result.errorMsg);
 				return;
 			}else{
 				$('#startDeployBtn').val('发布中').attr({disabled: true});
@@ -198,7 +199,11 @@ $(function(){
 						alert('发布已完成!');
 						//TODO
 						$('#startDeployBtn').val('重新发布').attr({disabled: false});
-						$('#deployStatus').html('发布已完成').css({color: 'green'});
+						if(data.deployResult === true){
+							$('#deployStatus').html('发布成功').css({color: 'green'});
+						}else{
+							$('#deployStatus').html('发布失败').css({color: 'red'});
+						}
 						return;
 					}
 					if(!data.isFinished){
@@ -217,9 +222,10 @@ $(function(){
 			}
 		});
 		
-		function failedInDeployProcess(){
+		function failedInDeployProcess(errorMsg){
+			var tip = errorMsg? ' [ ' + errorMsg + ' ] ' : '';
 			$('#startDeployBtn').val('重新发布').attr({disabled: false});
-			$('#deployStatus').html('发布失败，请重新发布').css({color: 'red'});
+			$('#deployStatus').html('发布失败，请重新发布' + tip).css({color: 'red'});
 		}
 	})
 	
@@ -284,7 +290,6 @@ window.onbeforeunload = function(){
 				<textarea id="readmeContent" readonly="readonly">{{readmeContent}}</textarea>
 			</div>
 			<div style="padding-top: 20px;">
-				<input type="button" value="更新web.xml" id="updateXmlBtn"/>
 				<input type="button" value="发布" id="startDeployBtn"/>
 				<span style="font-size: 20px;" id="deployStatus"></span>
 			</div>
