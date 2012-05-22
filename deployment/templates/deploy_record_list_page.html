@@ -3,6 +3,7 @@
 <link type="text/css" rel="stylesheet" href="/static_files/jqueryui/css/jquery.ui.core.css"/>
 <link type="text/css" rel="stylesheet" href="/static_files/jqueryui/css/jquery.ui.theme.css"/>
 <link type="text/css" rel="stylesheet" href="/static_files/jqueryui/css/jquery.ui.datepicker.css"/>
+<link type="text/css" rel="stylesheet" href="/static_files/css/dplPageBar.css"/>
 <style>
 	div.wrap {
 		text-align: center;
@@ -32,49 +33,6 @@
 	#list_tbl {
 		width: 100%;
 	}
-	
-	.page_bar {
-		height: 40px;
-		float: right;
-		text-align: right;
-	}
-	.page_bar div.btn_grp {
-		margin: 0px;
-		padding: 0px;
-		display: inline-block;
-	}
-	.page_bar .btn_grp div{
-		display: inline-block;
-		margin: 5px;
-		text-align: center;
-		line-height: 20px;
-		float: left;
-		width: 20px;
-		height: 20px;
-	}
-	.page_bar .btn_grp .btn{
-		border: 2px solid #333;
-		background: #eee;
-		cursor: pointer;
-	}
-	.page_bar .btn_grp .cur_sel {
-		color: #fff;
-		font-weight: bolder;
-		background: #bbb;
-	}
-	.page_bar .cur_page_panel {
-		display: inline-block;
-		margin: 0px;
-		padding: 0px;
-		line-height: 20px;
-		font-size: 16px;
-		font-weight: bolder;
-	}
-	.page_bar .cur_page_panel a {
-		text-decoration: none;
-		color: #000;
-	}
-	
 </style>
 {% endblock %}
 
@@ -82,6 +40,7 @@
 <script type="text/javascript" src="/static_files/jqueryui/js/jquery.ui.core.js"></script>
 <script type="text/javascript" src="/static_files/jqueryui/js/jquery.ui.datepicker.js"></script>
 <script type="text/javascript" src="/static_files/jqueryui/js/i18n/jquery.ui.datepicker-zh-CN.js"></script>
+<script type="text/javascript" src="/static_files/js/dplPageBar.js"></script>
 <script>
 $(function(){
 	$.datepicker.setDefaults($.datepicker.regional['zh-CN']);
@@ -116,7 +75,37 @@ $(function(){
 	$('#ui-datepicker-div').css('font-size','0.8em');
 	$('#project').val('{{query_params.project}}');
 	$('#deployType').val('{{query_params.deploy_type}}');
-})
+	
+	// 新的查询，必须保证是第一页
+	$('#queryBtn').click(function(){
+		var recordForm = $('#deploy_record_query_form');
+			recordForm.attr({action: '/deployRecordList/1/'});
+			recordForm.submit();
+		return false;
+	});
+	
+	// 初始化page bar
+	totalPage = parseInt('{{query_params.totalPage}}');
+	isNaN(totalPage) && (totalPage = 1);
+	curPage = parseInt('{{query_params.curPage}}');
+	isNaN(curPage) && (curPage = 1)
+	numPerPage = parseInt('{{query_params.numPerPage}}');
+	isNaN(numPerPage) && (numPerPage = 20);
+	new PageBar({
+		totalPage: totalPage,
+		pageBar: 'page_bar',
+		curPageSiblingBtnNum: 3,
+		curPage: curPage,
+		numPerPage: numPerPage,
+		maxBtnNum: 10,
+		clickBtn: function(index){
+			var recordForm = $('#deploy_record_query_form');
+			recordForm.attr({action: '/deployRecordList/'+ index + '/'});
+			recordForm.submit();
+			return false;
+		}
+	});
+});
 </script>
 {% endblock %}
 
@@ -168,7 +157,7 @@ $(function(){
 				</tr>
 				<tr>
 					<td colspan="4" style="text-align: center;">
-						<input type="submit" value="查询" style="font-size:15px;"/>
+						<input type="button" value="查询" style="font-size:15px;" id="queryBtn"/>
 					</td>
 				</tr>
 			</table>
@@ -178,27 +167,7 @@ $(function(){
 	<hr>
 	
 	<div class="list_area">
-		<div class="page_bar">
-			<div class="btn_grp">
-				<div class="btn">1</div>
-				<div class="btn cur_sel">2</div>
-				<div class="btn">3</div>
-				<div class="btn">4</div>
-				<div>...</div>
-				<div class="btn">9</div>
-				<div class="btn">10</div>
-			</div>
-			<div class="cur_page_panel">
-				<div style="display: inline-block">
-					<div>
-						<a href="###">&lt;&lt;</a>
-						<span>当前第[2]页,共[10]页</span>
-						<a href="###">&gt;&gt;</a>
-					</div>
-					<div style="height: 5px; line-height: 1px;">&nbsp;</div>
-				</div>
-			</div>
-		</div>
+		<div class="page_bar" id="page_bar"></div>
 		<br/>
 		<table id="list_tbl" border="1" cellspacing="0">
 			<tr>

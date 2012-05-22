@@ -17,6 +17,7 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 from deployment.deploysetting import *
 from deployment.models import *
@@ -148,6 +149,8 @@ def deploy_record_list_page(request, page_num=1):
     projects = Project.objects.all()
     conditions = []
     query_params = {}
+    num_per_page = 20
+    
     if request.POST:
         username = request.POST.get('username')
         if username:
@@ -173,9 +176,15 @@ def deploy_record_list_page(request, page_num=1):
         if end_time:
             query_params['end_time'] = end_time
             conditions.append(Q(create_time__lte = end_time))
-    records = DeployRecord.objects.filter(*conditions).order_by('-id')
+    query_result = DeployRecord.objects.filter(*conditions).order_by('-id')
+    paged_records = Paginator(query_result, num_per_page);
+    records = paged_records.page(page_num)
     for record in records:
         record.formated_create_time = record.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    
+    query_params['curPage'] = page_num
+    query_params['numPerPage'] = num_per_page
+    query_params['totalPage'] = paged_records.num_pages
     params = RequestContext(request, {
         'projects': projects,
         'records': records,
