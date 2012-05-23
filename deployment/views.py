@@ -331,7 +331,7 @@ def start_rollback(request):
             cache.set('log_reader_' + record_id_str, log_reader, 300)
             deployer = Deployer(record = record, direct = 'rollback')
             deployer.start()
-            record.status = DeployRecord.ROLLBACK
+            record.status = DeployRecord.ROLLBACKING
             record.save()
             params = {
                 'beginDeploy': True,
@@ -398,7 +398,11 @@ def read_deploy_log_on_realtime(request):
     deploy_result = cache.get(deploy_result_key)
     cache.delete(deploy_result_key)
     record = DeployRecord.objects.get(pk = int(record_id_str))
-    record.status = deploy_result and DeployRecord.SUCCESS or DeployRecord.FAILURE
+    if deploy_result:
+        record.status = record.status == DeployRecord.ROLLBACKING and DeployRecord.ROLLBACK or DeployRecord.SUCCESS
+    else:
+        record.status = DeployRecord.FAILURE
+#    record.status = deploy_result and DeployRecord.SUCCESS or DeployRecord.FAILURE
     record.save()
     params['isFinished'] = True
     params['deployResult'] = deploy_result

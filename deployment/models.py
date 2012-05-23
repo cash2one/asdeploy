@@ -37,6 +37,7 @@ class DeployRecord(models.Model):
     DEPLOYING = 'deploying'
     SUCCESS = 'success'
     FAILURE = 'failure'
+    ROLLBACKING = 'rollbacking'
     ROLLBACK = 'rollback'
     
     user = models.ForeignKey(User)
