@@ -27,7 +27,7 @@
 		height: 300px;
 		list-style: none;
 		border: 1px solid #333;
-		overflow-y: scroll;
+		overflow-y: auto;
 	}
 	ul.option_wrap li {
 		font-size: 20px;
@@ -71,6 +71,10 @@ function submitCheck(){
 	}
 	if(!$('#deployType').val()){
 		alert('请选择发布类型!');
+		return false;
+	}
+	if(!/^\d+(\.\d+)+$/.test($('#version').val())){
+		alert('请输入正确的版本号!');
 		return false;
 	}
 	return true;
