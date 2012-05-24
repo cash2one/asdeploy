@@ -37,7 +37,7 @@ urlpatterns = patterns('',
     
     (r'^decompressItem/$', decompress_item),    #解压补丁
     (r'^startDeploy/$', start_deploy),          #发布按钮
-    (r'^startRollback$', start_rollback),       #回滚按钮
+    (r'^startRollback/$', start_rollback),       #回滚按钮
     (r'^readDeployLogOnRealtime/$', read_deploy_log_on_realtime), #发布过程中实时查询日志文件
     
     (r'^deployRecordList/(?P<page_num>\d+)/$', deploy_record_list_page),
