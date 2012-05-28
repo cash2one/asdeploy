@@ -15,7 +15,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from django.contrib.auth.models import User
-from django.contrib.auth import logout
+from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
@@ -56,12 +56,16 @@ def register_page(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
             User.objects.create_user(
-                username = form.cleaned_data.get('username'), 
-                password = form.cleaned_data.get('password1'),
+                username = username, 
+                password = password,
                 email = form.cleaned_data.get('email')
             )
-            return HttpResponseRedirect('/register/success')
+            user = authenticate(username = username, password = password)
+            login(request, user)
+            return HttpResponseRedirect('/')
     else:
         form = RegistrationForm()
     params = RequestContext(request, {
