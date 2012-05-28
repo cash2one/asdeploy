@@ -33,6 +33,9 @@
 	}
 	ul.errorlist li {
 	}
+	.btn {
+		font-size: 16px;
+	}
 </style>
 {% endblock %}
 
@@ -45,7 +48,9 @@
 	<form method="post" action=".">
 		{% csrf_token %}
 		{{ form.as_p }}
-		<input type="submit" value="注册"/>
+		<span style="display:inline-block; width: 20px;"></span>
+		<input class="btn" type="submit" value="注册"/>
+		<input class="btn" type="button" value="返回" onclick="window.location.href='/login/'"/>
 	</form>
 </div>
 {% endblock %}

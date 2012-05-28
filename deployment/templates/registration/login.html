@@ -9,6 +9,9 @@
 	div.wrap form{
 		margin-left: -20px;
 	}
+	.btn {
+		font-size: 16px;
+	}
 </style>
 {% endblock %}
 
@@ -29,7 +32,9 @@
 			{{ form.password }}
 		</p>
 		<input type="hidden" name="next" value="/"/>
-		<input type="submit" value="登录" />
+		<span style="display:inline-block; width: 20px;"></span>
+		<input class="btn" type="submit" value="登录"/>
+		<input class="btn" type="button" value="注册" onclick="location.href='/register/'"/>
 	</form>
 </div>
 {% endblock %}
