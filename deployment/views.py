@@ -2,6 +2,7 @@
 
 import os
 import json
+import time
 import string
 import chardet
 from datetime import datetime
@@ -258,8 +259,7 @@ def upload_deploy_item(request):
         
         folderpath = _generate_upload_folder_path(project.name, version)
         if not os.path.isdir(folderpath):
-            flag = os.makedirs(folderpath)
-        
+            os.makedirs(folderpath)
         destination = open(folderpath + filename, 'wb+')
         for chunk in deploy_item_file.chunks():
             destination.write(chunk)
@@ -311,6 +311,7 @@ def decompress_item(request):
         if flag:
             params['isSuccess'] = True
             params['readme'] = _get_readme_content(unziped_folder)
+            params['fileList'] = _get_file_list(unziped_folder)
                 
     if not params.has_key('isSuccess'):
         params['isSuccess'] = False
@@ -326,7 +327,9 @@ def start_rollback(request):
         deploy_type = request.POST.get('deployType')
         if deploy_type != DeployItem.PATCH:
             error_msg = '只有补丁的发布可以回滚'
-        elif record.status != DeployRecord.SUCCESS and record.status != DeployRecord.FAILURE:
+        elif record.status != DeployRecord.SUCCESS \
+            and record.status != DeployRecord.FAILURE \
+            and record.status != DeployRecord.ROLLBACK:
             error_msg = '只有完成后的发布可以回滚'
         elif cache.get('log_is_writing_' + record_id_str):
             error_msg = '发布仍在继续中...'

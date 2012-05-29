@@ -142,6 +142,7 @@ $(function(){
 	
 	if('{{deployType}}' == 'war'){
 		$('#decompressBtn').attr({disabled: true}).css({display: 'none'});
+		$('#fileListWrap').css({display: 'none'});
 	}
 	$('#decompressBtn').click(function(){
 		$('#decompressBtn').val('解压中').attr({disabled:true});
@@ -157,6 +158,9 @@ $(function(){
 			if(result && result.isSuccess === true){
 				if(result.readme){
 					$('#readmeContent').val(result.readme);
+				}
+				if(result.fileList instanceof Array){
+					$('#fileListContent').val(result.fileList.join('\r\n'));
 				}
 				alert('解压缩成功!');
 			}else{
@@ -361,6 +365,11 @@ window.onbeforeunload = function(){
 				<label>README</label>
 				<br/>
 				<textarea id="readmeContent" readonly="readonly">{{readmeContent}}</textarea>
+			</div>
+			<div style="padding-top: 20px;" id="fileListWrap">
+				<label>FILE_LIST</label>
+				<br/>
+				<textarea id="fileListContent" readonly="readonly"></textarea>
 			</div>
 			<div style="padding-top: 20px;">
 				<input type="button" value="发布" id="startDeployBtn" _disabled="disabled"/>
