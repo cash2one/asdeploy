@@ -2,7 +2,7 @@
 
 import os.path
 
-from django.conf.urls import patterns
+from django.conf.urls import patterns, include, url
 from django.views.generic.simple import direct_to_template
 from deployment.views import *
 
@@ -16,6 +16,8 @@ static_files = os.path.join(
 )
 
 urlpatterns = patterns('',
+    url(r'^admin/', include(admin.site.urls)),
+    
     #静态文件路径
     (r'^static_files/(?P<path>.*)$', 'django.views.static.serve', {'document_root': static_files}),
     

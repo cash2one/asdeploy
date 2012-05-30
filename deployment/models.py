@@ -27,6 +27,9 @@ class DeployItem(models.Model):
     create_time = models.DateTimeField()
     update_time = models.DateTimeField(null = True)
     
+    def __unicode__(self):
+        return '[' + self.file_name + '|' + self.version + ']'
+    
     class Meta:
         db_table = 'dpl_deployitem'
 

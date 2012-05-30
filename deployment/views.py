@@ -2,7 +2,6 @@
 
 import os
 import json
-import time
 import string
 import chardet
 from datetime import datetime
@@ -248,7 +247,7 @@ def upload_deploy_item(request):
         flag = True ##也许下面应该try一下
         proj_id = int(request.POST.get('projId'))
         record_id = int(request.POST.get('recordId'))
-        version = request.POST.get('version')
+        version = string.strip(request.POST.get('version') or '')
         deploy_type = request.POST.get('deployType')
         
         project = Project.objects.get(pk = proj_id)
@@ -265,7 +264,7 @@ def upload_deploy_item(request):
             destination.write(chunk)
         destination.close()
         
-        items = DeployItem.objects.filter(file_name__exact = filename )
+        items = DeployItem.objects.filter(file_name__exact = filename, version__exact = version)
         item = (items and len(items) > 0) and items[0] or None
         now_time = datetime.now()
         if not item:
@@ -456,7 +455,7 @@ def convert2utf8(content):
     encode_manner = chardet.detect(content)
     if not encode_manner:
         return content
-    if encode_manner['confidence'] < 0.9:
+    if encode_manner['confidence'] < 0.6:
         return content
     if encode_manner['encoding'] == 'utf-8':
         return content
