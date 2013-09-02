@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 {% block style %}
+<link style="text/css" rel="stylesheet" href="/static_files/ztree/css/zTreeStyle.css"/>
 <style>
 	div.wrap {
 		text-align: center;
 		padding-top: 50px;
+		width: 800px;
+		margin: 0px auto;
+		position: relative;
 	}
 	div.sect_wrap {
 		width: 800px;
@@ -40,18 +44,91 @@
 	#uploadDetailWrap {
 		display: none;
 	}
+	
+	#downloadProjectFileArea{
+		
+	}
+	
+	#fileTreeWrap{
+		height: 400px;
+		overflow-y: auto;
+		border: 1px solid #aaa;
+		padding-left: 20px;
+		padding-top: 10px;
+	}
+	.second_wrap {
+		width: 800px;
+		margin: 0px auto;
+		background-color: #fff;
+	}
+	#instruction {
+		position: absolute; 
+		width: 300px; 
+		top: 120px;
+		border: 1px solid #333;
+		z-index: -1;
+	}
+	#instructionHandler {
+		position: absolute; 
+		width: 30px; 
+		height: 110px; 
+		border: 1px solid #333; 
+		left: -34px; 
+		font-size: 20px;
+		background-color: #ccc;
+		padding-top: 10px;
+		top: 120px;
+		cursor: pointer;
+		border-radius: 10px 0px 0px 10px;
+	}
+	#instructionUl {
+		text-align: left;
+		font-size: 20px;
+		padding-right: 20px;
+	}
+	#instructionUl li {
+		margin-bottom: 10px;
+	}
 </style>
 {% endblock %}
 
 {% block native_js %}
 <script src="/static_files/js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="/static_files/ztree/js/jquery.ztree.all-3.2.js"></script>
 <script>
+(function($){
+    $.fn.preventScroll = function(){
+        var _this = this.get(0);
+        if($.browser.mozilla){
+            _this.addEventListener('DOMMouseScroll',function(e){
+                _this.scrollTop += e.detail > 0 ? 60 : -60;   
+                e.preventDefault();
+            },false); 
+        }else{
+            _this.onmousewheel = function(e){   
+                e = e || window.event;   
+                _this.scrollTop += e.wheelDelta > 0 ? -60 : 60;   
+                e.returnValue = false  
+            };
+        }
+        return this;
+    };
+})(jQuery);
 $(function(){
 	var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
 	$('#uploadBtn').click(function(){
 		var $this = $(this);
-		if(!$('#deployItemField').val()){
+		var deployItemName = $('#deployItemField').val();
+		if(!deployItemName){
 			alert('请先选择要上传的文件!');
+			return false;
+		}
+		if('{{deployType}}' == 'patch' && !(/.zip$/i).test(deployItemName)){
+			alert('请选择zip压缩格式的补丁文件!');
+			return false;
+		}
+		if('{{deployType}}' == 'war' && !(/.war$/i).test(deployItemName)){
+			alert('请选择war包进行上传!');
 			return false;
 		}
 		$this.val('上传中').attr({disabled: true});
@@ -313,6 +390,99 @@ $(function(){
 		window.onbeforeunload = null;
 		location.href = '/unlockDeploy';
 	});
+	
+	// 文件树
+	if('{{deployType}}' == 'war'){
+		$('#downloadProjectFileWrap').remove();
+	}else{
+		try{
+			$('#toggleDownloadProjectFileBtn').toggle(function(){
+				$('#downloadProjectFileArea').slideDown();
+				$(this).val('收起下载区');
+			}, function(){
+				$('#downloadProjectFileArea').slideUp();
+				$(this).val('下载工程文件');
+			});
+			(function(){
+				var setting = {
+					async: {
+						enable: true,
+						url: function(treeId, treeNode){
+							params = 'id'
+							urlArr = ['getProjectFileNodes', '{{project.id}}', 0, treeNode.id]
+							return '/' + urlArr.join('/') + '/?file_path=' + encodeURIComponent(treeNode.file_path) 
+						},
+						view: {
+							expandSpeed: ''
+						},
+						data: {
+							simpleData: {
+								enable: true
+							}
+						}
+					}
+				};
+				var zNodes =[
+					{name:'{{project.war_name}}@{{curServer}}', id: '0', isParent:true, file_path: ''},
+				];
+				$.fn.zTree.init($("#fileTree"), setting, zNodes);
+				
+				$('#fileTreeWrap').preventScroll();
+				
+				var treeObj = $.fn.zTree.getZTreeObj('fileTree');
+				$('#downloadProjectFileBtn').click(function(){
+					var nodes = treeObj.getSelectedNodes();
+					if(!nodes || !nodes[0] || nodes[0].isParent){
+						alert('请先选中文件!')
+					} else {
+						node = nodes[0]
+						url = '/downloadProjectFile/{{project.id}}/0/?file_path=' + encodeURIComponent(node.file_path) + '&file_name=' + encodeURIComponent(node.name);
+						window.open(url, 'downloadFileFrame')
+					}
+				});
+			})();
+		}catch(e){
+			// 插件在ie下出问题了，可以去找找其他版本
+			$('#toggleDownloadProjectFileBtn').css({display: 'none'});
+		}
+	}
+	
+	// 注意事项
+	(function(){
+		var initTop = 120,
+			initHandlerLeft = -34,
+			$instruction = $('#instruction'),
+			$instructionHandler = $('#instructionHandler');
+		function slideAction(event){
+			var $this = $(document);
+			var top = $this.scrollTop() + initTop,
+				docHeight = document.documentElement.clientHeight;
+			if(top + $instruction.height() > docHeight + $this.scrollTop()){
+				top = docHeight + $this.scrollTop() - $instruction.height() - 30;
+				top < initTop && (top = initTop);
+			}
+			$instruction.stop().animate({
+				top: top
+			});
+			$instructionHandler.stop().animate({
+				top: top
+			})
+		}
+		window.onscroll = slideAction;
+		window.onresize = slideAction;
+		
+		// 不会布局造成的麻烦
+		$instructionHandler.toggle(function(){
+			$instruction.animate({left: -304});
+			$instructionHandler.animate({left: -304 + initHandlerLeft})
+			$instructionHandler.html('收起提示');
+		}, function(){
+			$instruction.animate({left: 0});
+			$instructionHandler.animate({left: initHandlerLeft});
+			$instructionHandler.html('注意事项');
+		});
+	})();
+	
 });
 window.onbeforeunload = function(){
 	var alarmStr = '发布过程中，请不要离开!\n请点击 [ 取消 ] 或 [ 留在此页 ] ';
@@ -327,62 +497,93 @@ window.onbeforeunload = function(){
 
 {% block content %}
 {% csrf_token %}
-<div class="wrap">
-	<h2>发布工程</h2>
-	<div class="sect_wrap">
-		<ul class="deploy_init_info">
-			<li>发布工程: <b>{{project.name}}</b></li>
-			<li>版&nbsp;本&nbsp;号: <b>{{version}}</b></li>
-			<li>发布方式: <b>{{deployType}}</b></li>
+<div class="wrap" id="firstWrap">
+	<div id="instruction" >
+		<ul id="instructionUl">
+			<li>版本发布只能上传war包。</li>
+			<li>补丁发布只能上传zip压缩文件。</li>
+			<li>补丁的文件名请以“<b style="color:red">-todo</b>”或“<b style="color:red">-pending</b>”结尾。</li>
+			<li>进行发布或回滚的过程中，请不要离开此页面或进行解锁操作。</li>
+			<li>请不要在补丁中使用中文做文件名。</li>
+			<li>发布完成后，除了页面弹出框的提示，还要依据log的内容来判断发布是否成功。</li>
+			<li>离开此页面时，请记得解锁。如果没有解锁，可在首页进行解锁操作。</li>
 		</ul>
-		<br/><br/>
-		<div class="upload_area">
-			<label>上传文件:</label>
-			<input type="file" name="deployItemField" id="deployItemField"/>
-			<input type="button" value="上传" id="uploadBtn"/>
+	</div>
+	<div id="secondWrap" class="second_wrap">
+		<div id="instructionHandler">
+			注意事项
+		</div>
+		<h2>发布工程</h2>
+		<div class="sect_wrap">
+			<ul class="deploy_init_info">
+				<li>发布工程: <b>{{project.name}}</b></li>
+				<li>版&nbsp;本&nbsp;号: <b>{{version}}</b></li>
+				<li>发布方式: <b>{{deployType}}</b></li>
+			</ul>
 			<br/>
-			<label>文件上传状态:</label>
-			<span class="desc" id="uploadResult">尚未上传文件</span>
-			<br/>
-			<div id="uploadDetailWrap">
-				<label></label>
-				<span class="desc" id="uploadFilename"></span>
+			<div class="upload_area" id="downloadProjectFileWrap">
 				<br/>
-				<label></label>
-				<span class="desc" id="uploadFileSize"></span>
+				<input type="button" value="下载工程文件" id="toggleDownloadProjectFileBtn"/>
+				<div id="downloadProjectFileArea" style="display:none; padding-top: 20px;">
+					<input type="button" value="下载文件" id="downloadProjectFileBtn"/>
+					<div id="fileTreeWrap">
+						<ul id="fileTree" class="ztree"></ul>
+					</div>
+				</div>
+				<div style="display:none">
+					<iframe name="downloadFileFrame"></iframe>
+				</div>
+				<br/>
+			</div>
+			<div class="upload_area">
+				<br/>
+				<label>上传文件:</label>
+				<input type="file" name="deployItemField" id="deployItemField"/>
+				<input type="button" value="上传" id="uploadBtn"/>
+				<br/>
+				<label>文件上传状态:</label>
+				<span class="desc" id="uploadResult">尚未上传文件</span>
+				<br/>
+				<div id="uploadDetailWrap">
+					<label></label>
+					<span class="desc" id="uploadFilename"></span>
+					<br/>
+					<label></label>
+					<span class="desc" id="uploadFileSize"></span>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="sect_wrap">
-		<div class="check_area">
-			<input type="button" value="解压补丁文件" id="decompressBtn"/>
-			<input type="button" value="更新readme" id="toggleReadmeUpdateBtn"/>
-			<div id="readmeUpdateArea" style="display:none; padding-top:20px;">
-				<input type="file" name="readmeField" id="readmeField"/>
-				<input type="button" value="上传新的readme" id="uploadReadmeBtn"/>
-			</div>
-			<div style="padding-top: 20px;">
-				<label>README</label>
-				<br/>
-				<textarea id="readmeContent" readonly="readonly">{{readmeContent}}</textarea>
-			</div>
-			<div style="padding-top: 20px;" id="fileListWrap">
-				<label>文件列表</label>
-				<br/>
-				<textarea id="fileListContent" readonly="readonly"></textarea>
-			</div>
-			<div style="padding-top: 20px;">
-				<input type="button" value="发布" id="startDeployBtn" _disabled="disabled"/>
-				<input type="button" value="回滚" id="startRollbackBtn" _disabled="disabled"/>
-				<span style="font-size: 20px;" id="deployStatus"></span>
-			</div>
-			<div style="padding-top: 20px;">
-				<label>LOG</label>
-				<br/>
-				<textarea id="logContent" readonly="readonly" style="height: 400px;"></textarea>
-			</div>
-			<div style="padding-top: 20px;">
-				<input type="button" id="unlockAndLeave" value="解锁并返回首页"/>
+		<div class="sect_wrap">
+			<div class="check_area">
+				<input type="button" value="解压补丁文件" id="decompressBtn"/>
+				<input type="button" value="更新readme" id="toggleReadmeUpdateBtn"/>
+				<div id="readmeUpdateArea" style="display:none; padding-top:20px;">
+					<input type="file" name="readmeField" id="readmeField"/>
+					<input type="button" value="上传新的readme" id="uploadReadmeBtn"/>
+				</div>
+				<div style="padding-top: 20px;">
+					<label>README</label>
+					<br/>
+					<textarea id="readmeContent" readonly="readonly">{{readmeContent}}</textarea>
+				</div>
+				<div style="padding-top: 20px;" id="fileListWrap">
+					<label>文件列表</label>
+					<br/>
+					<textarea id="fileListContent" readonly="readonly"></textarea>
+				</div>
+				<div style="padding-top: 20px;">
+					<input type="button" value="发布" id="startDeployBtn" _disabled="disabled"/>
+					<input type="button" value="回滚" id="startRollbackBtn" _disabled="disabled"/>
+					<span style="font-size: 20px;" id="deployStatus"></span>
+				</div>
+				<div style="padding-top: 20px;">
+					<label>LOG</label>
+					<br/>
+					<textarea id="logContent" readonly="readonly" style="height: 400px;"></textarea>
+				</div>
+				<div style="padding-top: 20px;">
+					<input type="button" id="unlockAndLeave" value="解锁并返回首页"/>
+				</div>
 			</div>
 		</div>
 	</div>

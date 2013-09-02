@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass">
+			<value>org.springframework.web.servlet.view.JstlView</value>
+		</property>
+		<property name="prefix">
+			<value>/WEB-INF/jsp/</value>
+		</property>
+		<property name="suffix">
+			<value>.jsp</value>
+		</property>
+	</bean>
+
+	<bean id="beanNameUrlMapping"
+		class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"
+		lazy-init="default" autowire="default" dependency-check="default">
+		<property name="order">
+			<value>1</value>
+		</property>
+		<property name="interceptors">
+			<list>
+				<ref bean="openSessionInViewInterceptorForAS" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="openSessionInViewInterceptorForAS"
+		class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor"
+		lazy-init="default" autowire="default" dependency-check="default">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryForAS" />
+		</property>
+	</bean>
+
+	<bean id="urlMapping"
+		class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="order">
+			<value>2</value>
+		</property>
+	</bean>
+
+	<bean id="methodNameResolver"
+		class="org.springframework.web.servlet.mvc.multiaction.ParameterMethodNameResolver">
+		<property name="paramName">
+			<value>action</value>
+		</property>
+	</bean>
+
+	<bean name="/login.do"
+		class="com.ablesky.passport.controller.LoginController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService" />
+		</property>
+	</bean>
+
+	<bean name="/logout.do"
+		class="com.ablesky.passport.controller.LogoutController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="daoAuthenticationProvider">
+			<ref bean="daoAuthenticationProvider" />
+		</property>
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService" />
+		</property>
+	</bean>
+
+	<bean name="/check.do"
+		class="com.ablesky.passport.controller.CheckIfLoginController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService" />
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/online.do"
+		class="com.ablesky.passport.controller.GetOnlineNumberController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/addServer.do"
+		class="com.ablesky.passport.controller.AddServerController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/keep.do"
+		class="com.ablesky.passport.controller.KeepWithMeController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService" />
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/account.do"
+		class="com.ablesky.passport.controller.account.AccountController">
+		<property name="accountService">
+			<ref bean="accountService" />
+		</property>
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService" />
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/accountRedirect.do"
+		class="com.ablesky.passport.controller.account.AccountRedirectController">
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/checkIfOnline.do"
+		class="com.ablesky.passport.controller.CheckIfOnlineController">
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService" />
+		</property>
+	</bean>
+
+	<bean name="/writeTicket.do"
+		class="com.ablesky.passport.controller.WriteTicketController">
+	</bean>
+
+	<bean name="/index.do"
+		class="com.ablesky.passport.controller.redirect.IndexController">
+	</bean>
+
+	<bean name="/faultLinkRedirect.do"
+		class="com.ablesky.passport.controller.redirect.FaultLinkRedirectController">
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+		
+	<bean name="/oneStopRedirect.do"
+		class="com.ablesky.passport.controller.orguserbinding.OneStopRedirectController">
+		<property name="accountService">
+			<ref bean="accountService"/>
+		</property>
+		<property name="accountOnlineStatusService">
+			<ref bean="accountOnlineStatusService"/>
+		</property>
+		<property name="daoAuthenticationProvider">
+			<ref bean="daoAuthenticationProvider"/>
+		</property>
+		<property name="orgUserBindAsUserService">
+			<ref bean="orgUserBindAsUserService"/>
+		</property>
+		<property name="organizationService">
+			<ref bean="organizationService"/>
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+	
+	<bean name="/orgUserBindingRedirect.do"
+		class="com.ablesky.passport.controller.orguserbinding.OrgUserBindingRedirectController">
+		<property name="accountService">
+			<ref bean="accountService"/>
+		</property>
+		<property name="orgUserBindAsUserService">
+			<ref bean="orgUserBindAsUserService"/>
+		</property>
+		<property name="organizationService">
+			<ref bean="organizationService"/>
+		</property>
+		<property name="methodNameResolver">
+			<ref bean="methodNameResolver" />
+		</property>
+	</bean>
+
+</beans>
+
+
+

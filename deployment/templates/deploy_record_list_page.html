@@ -79,17 +79,31 @@ $(function(){
 	// 新的查询，必须保证是第一页
 	$('#queryBtn').click(function(){
 		var recordForm = $('#deploy_record_query_form');
-			recordForm.attr({action: '/deployRecordList/1/'});
-			recordForm.submit();
+		recordForm.attr({action: '/deployRecordList/1/'});
+		recordForm.submit();
+		return false;
+	});
+	
+	// 清除查询条件，必须保证是第一页
+	$('#clearQueryBtn').click(function(){
+		$('#username').val('');
+		$('#deployType').val('');
+		$('#project').val(0);
+		$('#version').val('');
+		$('#startTime').val('');
+		$('#endTime').val('');
+		var recordForm = $('#deploy_record_query_form');
+		recordForm.attr({action: '/deployRecordList/1/'});
+		recordForm.submit();
 		return false;
 	});
 	
 	// 初始化page bar
-	totalPage = parseInt('{{query_params.totalPage}}');
+	var totalPage = parseInt('{{query_params.totalPage}}');
 	isNaN(totalPage) && (totalPage = 1);
-	curPage = parseInt('{{query_params.curPage}}');
+	var curPage = parseInt('{{query_params.curPage}}');
 	isNaN(curPage) && (curPage = 1)
-	numPerPage = parseInt('{{query_params.numPerPage}}');
+	var numPerPage = parseInt('{{query_params.numPerPage}}');
 	isNaN(numPerPage) && (numPerPage = 20);
 	new PageBar({
 		totalPage: totalPage,
@@ -124,7 +138,7 @@ $(function(){
 					<td class="label">发布类型</td>
 					<td>
 						<select name="deployType" id="deployType">
-							<option value="">请选择</option>
+							<option value="">全部</option>
 							<option value="war">war包</option>
 							<option value="patch">补丁</option>
 						</select>
@@ -134,7 +148,7 @@ $(function(){
 					<td class="label">工程:</td>
 					<td>
 						<select name="project" id="project">
-							<option value="0">请选择</option>
+							<option value="0">全部</option>
 							{% for project in projects %}
 								<option value="{{project.id}}">{{project.name}}</option>
 							{% endfor%}
@@ -157,7 +171,9 @@ $(function(){
 				</tr>
 				<tr>
 					<td colspan="4" style="text-align: center;">
-						<input type="button" value="查询" style="font-size:15px;" id="queryBtn"/>
+						<input type="button" value="  查询  " style="font-size:15px;" id="queryBtn"/>
+						&nbsp;
+						<input type="button" value="清空条件" style="font-size:15px;" id="clearQueryBtn"/>
 					</td>
 				</tr>
 			</table>

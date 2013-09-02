@@ -8,10 +8,33 @@
 <link style="text/css" rel="stylesheet" href="/static_files/css/style.css" />
 <script type="text/javascript" src="/static_files/js/jquery.js"></script>
 <script type="text/javascript" src="/static_files/js/ajaxsetup_for_django.js"></script>
+<script>
+$(function(){
+	var host = location.host;
+	if(host.indexOf('at1') > 0 || host.indexOf('alpha') > 0){
+		$('#env_logo').html('ALPHA');
+	}else if(host.indexOf('bt1') > 0 || host.indexOf('beta') > 0){
+		$('#env_logo').html('BETA');
+	}else{
+		$('#env_logo').html('LOCALHOST');
+	}
+	
+	$('#env_logo').click(function(){
+		$.getJSON('/checkVersionAndEnv/', function(data){
+			if(data.version && data.environment){
+				var str = '代码发布系统 V' + data.version + '\n'
+					+ '当前发布环境 ' + data.environment;
+				alert(str);
+			}
+		});
+	});
+});
+</script>
 {% block native_js %}{% endblock %}
 </head>
 <body>
 <div id="nav">
+	<span class="env_logo" id="env_logo"></span>&nbsp;
 	{% if user.is_authenticated %}
 		<a href="/">首页</a> |
 		<a href="/user/{{user.username}}">{{ user.username }}</a> |

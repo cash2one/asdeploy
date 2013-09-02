@@ -50,7 +50,7 @@ $(function(){
 			{% if curLock %}
 				<span class="lock_prompt">
 					发布流程已被[{{curLock.user.username}}]锁定
-					{% if user.id == curLock.user.id or user.username == 'admin' %}
+					{% if user.id == curLock.user.id or user.is_superuser %}
 						<br/><br/>
 						<input type="button" value="解锁" id="unlock_deploy_btn"/>
 					{% endif %}
@@ -65,6 +65,9 @@ $(function(){
 				</li>
 				<li>
 					<a href="/deployRecordList/1/">查看发布历史</a>
+				</li>
+				<li>
+					<a href="/showOnlineFile/">编辑线上文件</a>
 				</li>
 				{% if user %}
 				<li>

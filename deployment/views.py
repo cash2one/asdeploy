@@ -3,6 +3,7 @@
 import os
 import json
 import string
+import urllib
 import chardet
 from datetime import datetime
 
@@ -18,13 +19,22 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.core.servers.basehttp import FileWrapper
 
 from deployment.deploysetting import *
 from deployment.models import *
 from deployment.forms import *
 from deployment.logutil import *
 from deployment.deployimpl import *
+from deployment.sftpconn import *
 
+
+def check_version_and_env(request):
+    params = {
+        'version': VERSION,
+        'environment': ENVIRONMENT,
+    }
+    return HttpResponse(json.dumps(params))
 
 @login_required
 def main_page(request):
@@ -90,10 +100,15 @@ def deploy_init_option_page(request):
         else:
             proj_id = int(proj_id_str)
             project = Project.objects.get(pk = proj_id)
+            try:
+                cur_server = WEB_SERVER[project.name][0]
+            except:
+                cur_server = 'NONE'
             _params = {
                 'project': project,
                 'deployType': deploy_type,
                 'version': version,
+                'curServer': cur_server,
             }
             (record, lock) = _before_deploy_project(request, _params)
             _params['record'] = record
@@ -114,7 +129,13 @@ def deploy_init_option_page(request):
 def _check_lock():
     locks = DeployLock.objects.filter(is_locked = True)
     if len(locks) >= 1:
-        return locks[0]
+        lock = locks[0]
+        period = datetime.now() - lock.locked_time
+        if period.days * 24 * 3600 + period.seconds <= LOCK_TIMEOUT_PERIOD:
+            return lock
+        else:
+            lock.is_locked = False
+            lock.save()
     return None
 
 def _before_deploy_project(request, params):
@@ -141,8 +162,8 @@ def _before_deploy_project(request, params):
 def unlock_deploy(request):
     curUser = request.user
     curLock = _check_lock()
-    # 这里应该取出权限信息进行判定，先简单写成这样吧
-    if curLock and (curUser.username == 'admin' or curUser.id == curLock.user.id):
+    # 本人或者超级管理员有权解锁
+    if curLock and (curUser.is_superuser or curUser.id == curLock.user.id):
         curLock.is_locked = False
         curLock.save()
     return HttpResponseRedirect('/')
@@ -318,6 +339,14 @@ def decompress_item(request):
 
 @login_required
 def start_rollback(request):
+    # 检查是否拥有当前的发布锁
+    cur_lock = _check_lock()
+    if not cur_lock or cur_lock.user.id != request.user.id:
+        params = {
+            'beginDeploy': False,
+            'errorMsg': '在发布页面停留时间过长，发布锁已超时'
+        }
+        return HttpResponse(json.dumps(params))
     params = None
     error_msg = ''
     if request.POST and request.POST.get('recordId'):
@@ -351,20 +380,24 @@ def start_rollback(request):
 
 @login_required
 def start_deploy(request):
+    # 检查是否拥有当前的发布锁
+    cur_lock = _check_lock()
+    if not cur_lock or cur_lock.user.id != request.user.id:
+        params = {
+            'beginDeploy': False,
+            'errorMsg': '在发布页面停留时间过长，发布锁已超时'
+        }
+        return HttpResponse(json.dumps(params))
     # 发布前需要检查状态，至少为uploaded
     params = None
     error_msg = ''
     if request.POST and request.POST.get('recordId'):
         record_id_str = request.POST.get('recordId')
         record = DeployRecord.objects.get(pk = int(record_id_str))
-        deploy_type = request.POST.get('deployType')
         
         # 版本发布需要web.xml
-        web_xml_path = SHELL_ROOT_PATH + record.project.name + '-deploy/web.xml'
         if record.status == DeployRecord.PREPARE:
             error_msg = '尚未上传文件'
-        elif deploy_type == DeployItem.WAR and not os.path.isfile(web_xml_path):
-            error_msg = '与版本发布相对应的web.xml不存在'
         elif cache.get('log_is_writing_' + record_id_str):
             error_msg = '发布仍在继续中...'
         else:
@@ -460,3 +493,183 @@ def convert2utf8(content):
     if encode_manner['encoding'] == 'utf-8':
         return content
     return content.decode(encode_manner['encoding']).encode('utf8')
+
+
+# 线上文件远程下载
+def file_node_cmp(n1, n2):
+    if n1['isParent'] ^ n2['isParent']:
+        return n1['isParent'] and -1 or 1
+    elif n1['isParent'] and n2['isParent']:
+        return cmp(n1['name'], n2['name'])
+    else:
+        suffix1 = n1['name'].split('.')[-1]
+        suffix2 = n2['name'].split('.')[-1]
+        suffix_cmp = cmp(suffix1, suffix2)
+        if suffix_cmp:
+            return suffix_cmp
+        return cmp(n1['name'], n2['name'])
+
+@login_required
+def get_project_file_nodes(request, project_id = 0, server_idx = 0,  node_id = '0'):
+    server_idx = int(server_idx)
+    file_path = request.GET.get('file_path')
+    if not file_path:
+        file_path = ''
+    project = Project.objects.get(pk = project_id)
+    filename_arr = get_dirlist_from_ftp(file_path = file_path, project = project, server_idx = server_idx)
+    nodes = []
+    if filename_arr is not None:
+        index = 0
+        suffix_regx = re.compile(r'\.\D+$')
+        for name in filename_arr:
+            node = {
+                'id': node_id + '_' + unicode(index),
+                'name': name,
+                'file_path': file_path + '/' + name,
+                'isParent': not suffix_regx.search(name)
+            }
+            index += 1
+            nodes.append(node)
+        nodes.sort(cmp=file_node_cmp, key=None, reverse=False)
+    return HttpResponse(json.dumps(nodes))
+
+@login_required
+def download_project_file(request, project_id = 0, server_idx = 0):
+    if request.GET:
+        file_path = request.GET.get('file_path')
+        file_name = request.GET.get('file_name')
+        project = Project.objects.get(pk = project_id)
+        local_path = get_file_from_ftp(file_path = file_path, project = project, server_idx = server_idx)
+        if local_path:
+            wrapper = FileWrapper(file(local_path), blksize = 1048576)
+            response = HttpResponse(wrapper, content_type='text/plain')
+            response['Content-Length'] = os.path.getsize(local_path)
+            response['Content-Disposition'] = 'attachment; filename=' + file_name
+            return response
+    return HttpResponse('')
+
+# 编辑线上文件
+@login_required
+def show_online_file(request):
+    
+    params = RequestContext(request, {
+        'projects': Project.objects.all(),
+        'serverInfo': json.dumps(WEB_SERVER),
+    });
+    return render_to_response('show_online_file.html', params);
+
+@login_required
+def open_online_file(request, project_id = 0, server_idx_list = ''):
+    params = {
+        'isError': True
+    }
+    if project_id == 0 or server_idx_list.strip() == '':
+        pass
+    elif request.GET:
+        file_path = request.GET.get('file_path')
+        file_name = request.GET.get('file_name')
+        server_idx_arr = server_idx_list.split('_')
+        project = Project.objects.get(pk = project_id)
+        local_path = get_file_from_ftp(file_path = file_path, project = project, server_idx = server_idx_arr[0])
+        f = open(local_path, 'r');
+        lines = f.readlines();
+        f.close()
+        content = ''.join(lines);
+        params['isError'] = False
+        params['project'] = project
+        params['content'] = content
+        params['filePath'] = file_path
+        params['fileName'] = file_name
+        params['serverIdxList'] = server_idx_list
+        params['serverInfo'] = json.dumps(WEB_SERVER);
+
+    return render_to_response('edit_online_file.html', RequestContext(request, params));
+
+@login_required
+def rename_online_file(request, project_id = 0, server_idx_list = ''):
+    params = {
+        'isSuccess': False
+    }
+    if project_id == 0 or server_idx_list.strip() == '':
+        pass
+    elif request.POST:
+        try:
+            parent_folder_path = request.POST.get('parent_folder_path')
+            old_file_name = request.POST.get('old_file_name')
+            new_file_name = request.POST.get('new_file_name')
+            server_idx_arr = server_idx_list.split('_')
+            project = Project.objects.get(pk = project_id)
+            result_msg_arr = ['对文件 [ ' + str(old_file_name) + ' ] 的重命名结果:\n']
+            for idx in server_idx_arr:
+                flag = rename_file_on_ftp(
+                    parent_folder_path = parent_folder_path, 
+                    old_file_name = old_file_name, 
+                    new_file_name = new_file_name,
+                    project = project, server_idx = idx)
+                result_msg_arr.append(WEB_SERVER[project.name][int(idx)] + (flag and ' 重命名成功!' or ' 重命名失败!'))
+            result_msg = '\n'.join(result_msg_arr)
+            params['isSuccess'] = True
+            params['resultMsg'] = result_msg
+        except:
+            pass
+    
+    return HttpResponse(json.dumps(params))
+
+@login_required
+def backup_online_file(request, project_id = 0, server_idx_list = ''):
+    params = {
+        'isSuccess': False
+    }
+    if project_id == 0 or server_idx_list.strip() == '':
+        pass
+    elif request.POST:
+        try:
+            parent_folder_path = request.POST.get('parent_folder_path')
+            file_name = request.POST.get('file_name')
+            ts = unicode(int(time.time() * 1000))
+            backup_file_name = file_name + '.' + ts + '.bak'
+            server_idx_arr = server_idx_list.split('_')
+            project = Project.objects.get(pk = project_id)
+            result_msg_arr = ['对文件 [ ' + str(file_name) + ' ] 的备份结果:\n']
+            for idx in server_idx_arr:
+                flag = backup_file_on_ftp(parent_folder_path = parent_folder_path,
+                    file_name = file_name,
+                    backup_file_name = backup_file_name,
+                    project = project,
+                    server_idx = idx)
+                result_msg_arr.append(WEB_SERVER[project.name][int(idx)] + (flag and ' 备份成功!' or ' 备份失败!'))
+            result_msg_arr.append('备份文件的文件名为 [' + str(backup_file_name) + ' ]')
+            result_msg = '\n'.join(result_msg_arr)
+            params['isSuccess'] = True
+            params['resultMsg'] = result_msg
+        except:
+            pass
+        
+    return HttpResponse(json.dumps(params))
+
+@login_required
+def save_file_from_online_editor(request, project_id = 0, server_idx_list = ''):
+    params = {
+        'isSuccess': False
+    }
+    if project_id == 0 or server_idx_list.strip() == '':
+        pass
+    elif request.POST:
+        try:
+            file_path = request.POST.get('file_path')
+            file_name = request.POST.get('file_name')
+            file_content = request.POST.get('file_content').encode('utf8')
+            server_idx_arr = server_idx_list.split('_')
+            project = Project.objects.get(pk = project_id)
+            localpath = write_content_to_localfile(file_content = file_content, file_name = file_name)
+            result_msg_arr = ['对文件 [ ' + str(file_name) + ' ] 的保存结果:\n']
+            for idx in server_idx_arr:
+                flag = upload_file_to_ftp(local_file_path = localpath, ftp_file_path = file_path, project = project, server_idx = idx, overwrite = True)
+                result_msg_arr.append(WEB_SERVER[project.name][int(idx)] + (flag and ' 保存成功!' or ' 保存失败!'))
+            result_msg = '\n'.join(result_msg_arr)
+            params['isSuccess'] = True
+            params['resultMsg'] = result_msg
+        except:
+            pass
+    
+    return HttpResponse(json.dumps(params));

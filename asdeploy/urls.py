@@ -22,6 +22,7 @@ urlpatterns = patterns('',
     (r'^static_files/(?P<path>.*)$', 'django.views.static.serve', {'document_root': static_files}),
     
     #页面路径
+    (r'^checkVersionAndEnv/$', check_version_and_env),
     (r'^login/$', 'django.contrib.auth.views.login'),
     (r'^logout/$', logout_page),
     (r'^register/$', register_page),
@@ -44,5 +45,15 @@ urlpatterns = patterns('',
     
     (r'^deployRecordList/(?P<page_num>\d+)/$', deploy_record_list_page),
     (r'^deployRecordDetail/(?P<record_id>\d+)/$', deploy_record_detail_page),
+    
+    #展示和下载线上文件
+    (r'^getProjectFileNodes/(?P<project_id>\d+)/(?P<server_idx>\d+)/(?P<node_id>\w+)/$', get_project_file_nodes),
+    (r'^downloadProjectFile/(?P<project_id>\d+)/(?P<server_idx>\d+)/$', download_project_file),
+    #在线编辑文件
+    (r'^showOnlineFile/$', show_online_file),
+    (r'^openOnlineFile/(?P<project_id>\d+)/(?P<server_idx_list>[\d_]+)/$', open_online_file),
+    (r'^renameOnlineFile/(?P<project_id>\d+)/(?P<server_idx_list>[\d_]+)/$', rename_online_file),
+    (r'^backupOnlineFile/(?P<project_id>\d+)/(?P<server_idx_list>[\d_]+)/$', backup_online_file),
+    (r'^saveFileFromOnlineEditor/(?P<project_id>\d+)/(?P<server_idx_list>[\d_]+)/$', save_file_from_online_editor),
 
 )

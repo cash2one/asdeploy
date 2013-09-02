@@ -74,7 +74,7 @@ function submitCheck(){
 		return false;
 	}
 	if(!/^\d+(\.\d+)+$/.test($('#version').val())){
-		alert('请输入正确的版本号!');
+		alert('请输入正确的版本号!\n例如 "5.13"');
 		return false;
 	}
 	return true;

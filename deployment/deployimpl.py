@@ -44,6 +44,8 @@ def _rollback_patch(item):
     item_name = string.replace(item_name, '-todo', '-bakup')
     sh_path = _get_patch_sh_path_by_item(item)
     sh_param = ITEM_ROOT_PATH + item.project.name + '-' + item.version + '/' + item_name
+    if not NEED_SEND_EMAIL:
+        sh_param += ' n '
     sh_command = 'sh ' + sh_path + ' ' + sh_param + ' > ' + DEPLOY_LOG_PATH
     flag = os.system(sh_command)
     return flag == 0
@@ -64,6 +66,8 @@ def _deploy_item(item):
 def _deploy_war(item):
     sh_path = _get_war_sh_path_by_item(item);
     sh_param = item.project.name + '-' + item.version
+    if not NEED_SEND_EMAIL:
+        sh_param += ' n '
     sh_command = 'sh ' + sh_path + ' ' + sh_param + ' > ' + DEPLOY_LOG_PATH
     flag = os.system(sh_command)
     return flag == 0
@@ -77,6 +81,8 @@ def _deploy_patch(item):
     item_name = trim_compress_suffix(item_name)
     sh_path = _get_patch_sh_path_by_item(item)
     sh_param = ITEM_ROOT_PATH + item.project.name + '-' + item.version + '/' + item_name
+    if not NEED_SEND_EMAIL:
+        sh_param += ' n '
     sh_command = 'sh ' + sh_path + ' ' + sh_param + ' > ' + DEPLOY_LOG_PATH
     flag = os.system(sh_command)
     return flag == 0

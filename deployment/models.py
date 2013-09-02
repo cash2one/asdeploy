@@ -6,9 +6,10 @@ from django.contrib.auth.models import User
 
 class Project(models.Model):
     name = models.CharField(max_length = 30)
+    war_name = models.CharField(max_length = 30)
     
     def __unicode__(self):
-        return 'name=[' + self.name + ']';
+        return '[' + self.name + ']';
     
     class Meta:
         db_table = 'dpl_project'

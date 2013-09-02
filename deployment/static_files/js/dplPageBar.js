@@ -84,6 +84,7 @@ PageBar.prototype = {
 		this['pageBar'].appendChild(btnGrpDiv);
 	},
 	initPanel: function(){
+		var _this = this;
 		var panelDiv = document.createElement('div'),
 			wrapDiv = document.createElement('div'),
 			innerDiv = document.createElement('div'),
@@ -97,6 +98,14 @@ PageBar.prototype = {
 		leftBtn.href = 'javascript:void(0);';
 		rightBtn.innerHTML = '&gt;&gt;';
 		rightBtn.href = 'javascript:void(0);';
+		leftBtn.onclick = function(){
+			var idx = Math.max(1, _this.curPage - 1);
+			_this.clickBtn(idx);
+		};
+		rightBtn.onclick = function(){
+			var idx = Math.min(_this.totalPage, _this.curPage + 1);
+			_this.clickBtn(idx);
+		}
 		var str = '当前第[' + this.curPage + ']页,共[' + this.totalPage + ']页';
 		span.innerHTML = str;
 		with(footpadDiv.style){
